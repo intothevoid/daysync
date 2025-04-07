@@ -1,1 +1,2 @@
 timezone: "Australia/Adelaide"
+weather_api_key: ""  # Leave empty to use WEATHER_API_KEY environment variable

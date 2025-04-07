@@ -11,6 +11,7 @@ import (
 
 	"daysync/api/config"
 	"daysync/api/models"
+	"daysync/api/services"
 )
 
 func GetMotoGPSeason(w http.ResponseWriter, r *http.Request) {
@@ -123,14 +124,17 @@ func getOrdinal(n int) string {
 }
 
 func GetWeather(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement actual weather data retrieval from a weather API
-	// This is a mock implementation
-	weather := models.Weather{
-		Location:    "Qatar",
-		Temperature: 25.5,
-		Humidity:    65.0,
-		Conditions:  "Sunny",
-		UpdatedAt:   time.Now(),
+	location := r.URL.Query().Get("location")
+	if location == "" {
+		http.Error(w, "location parameter is required", http.StatusBadRequest)
+		return
+	}
+
+	weather, err := services.GetWeather(location)
+	if err != nil {
+		log.Printf("Error getting weather: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")

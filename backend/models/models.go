@@ -25,11 +25,16 @@ type Calendar struct {
 }
 
 type Weather struct {
-	Location    string    `json:"location"`
-	Temperature float64   `json:"temperature"`
-	Humidity    float64   `json:"humidity"`
-	Conditions  string    `json:"conditions"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	Location      string    `json:"location"`
+	Region        string    `json:"region"`
+	LocalTime     string    `json:"local_time"`
+	Temperature   float64   `json:"temperature"`
+	WindSpeed     float64   `json:"wind_speed"`
+	Precipitation float64   `json:"precipitation"`
+	Humidity      float64   `json:"humidity"`
+	FeelsLike     float64   `json:"feels_like"`
+	UVIndex       float64   `json:"uv_index"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 type CryptoPrice struct {
