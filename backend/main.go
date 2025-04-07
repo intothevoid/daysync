@@ -21,7 +21,7 @@ func main() {
 
 	// API routes
 	api := r.PathPrefix("/api").Subrouter()
-	api.HandleFunc("/motogp/{year}", handlers.GetMotoGPSeason).Methods("GET")
+	api.HandleFunc("/motogp", handlers.GetMotoGPSeason).Methods("GET")
 	api.HandleFunc("/motogp/next", handlers.GetNextMotoGPRace).Methods("GET")
 	api.HandleFunc("/weather/{location}", handlers.GetWeather).Methods("GET")
 	api.HandleFunc("/crypto/{coin}", handlers.GetCryptoPrice).Methods("GET")

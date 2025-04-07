@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,19 +11,9 @@ import (
 
 	"daysync/api/config"
 	"daysync/api/models"
-
-	"github.com/gorilla/mux"
 )
 
 func GetMotoGPSeason(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	year := vars["year"]
-
-	if year != "2025" {
-		http.Error(w, "data not found", http.StatusNotFound)
-		return
-	}
-
 	// Read the JSON file
 	data, err := os.ReadFile(filepath.Join("data", "motogp-2025.json"))
 	if err != nil {
@@ -38,13 +29,13 @@ func GetMotoGPSeason(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Convert times to configured timezone
+	// Convert times to configured timezone and format
 	loc := config.GetTimezone()
 	for i := range calendar.Races {
-		calendar.Races[i].Sessions.Q1 = convertToTimezone(calendar.Races[i].Sessions.Q1, loc)
-		calendar.Races[i].Sessions.Q2 = convertToTimezone(calendar.Races[i].Sessions.Q2, loc)
-		calendar.Races[i].Sessions.Sprint = convertToTimezone(calendar.Races[i].Sessions.Sprint, loc)
-		calendar.Races[i].Sessions.Race = convertToTimezone(calendar.Races[i].Sessions.Race, loc)
+		calendar.Races[i].Sessions.Q1 = formatTime(calendar.Races[i].Sessions.Q1, loc)
+		calendar.Races[i].Sessions.Q2 = formatTime(calendar.Races[i].Sessions.Q2, loc)
+		calendar.Races[i].Sessions.Sprint = formatTime(calendar.Races[i].Sessions.Sprint, loc)
+		calendar.Races[i].Sessions.Race = formatTime(calendar.Races[i].Sessions.Race, loc)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -90,24 +81,45 @@ func GetNextMotoGPRace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Convert times to configured timezone
+	// Convert times to configured timezone and format
 	loc := config.GetTimezone()
-	nextRace.Sessions.Q1 = convertToTimezone(nextRace.Sessions.Q1, loc)
-	nextRace.Sessions.Q2 = convertToTimezone(nextRace.Sessions.Q2, loc)
-	nextRace.Sessions.Sprint = convertToTimezone(nextRace.Sessions.Sprint, loc)
-	nextRace.Sessions.Race = convertToTimezone(nextRace.Sessions.Race, loc)
+	nextRace.Sessions.Q1 = formatTime(nextRace.Sessions.Q1, loc)
+	nextRace.Sessions.Q2 = formatTime(nextRace.Sessions.Q2, loc)
+	nextRace.Sessions.Sprint = formatTime(nextRace.Sessions.Sprint, loc)
+	nextRace.Sessions.Race = formatTime(nextRace.Sessions.Race, loc)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(nextRace)
 }
 
-func convertToTimezone(timeStr string, loc *time.Location) string {
+func formatTime(timeStr string, loc *time.Location) string {
 	t, err := time.Parse(time.RFC3339, timeStr)
 	if err != nil {
 		log.Printf("Error parsing time string: %v", err)
 		return timeStr
 	}
-	return t.In(loc).Format(time.RFC3339)
+
+	t = t.In(loc)
+	day := t.Day()
+	ordinal := getOrdinal(day)
+
+	return fmt.Sprintf("%d%s %s %d at %02d:%02d",
+		day, ordinal, t.Month().String(), t.Year(), t.Hour(), t.Minute())
+}
+
+func getOrdinal(n int) string {
+	switch {
+	case n >= 11 && n <= 13:
+		return "th"
+	case n%10 == 1:
+		return "st"
+	case n%10 == 2:
+		return "nd"
+	case n%10 == 3:
+		return "rd"
+	default:
+		return "th"
+	}
 }
 
 func GetWeather(w http.ResponseWriter, r *http.Request) {
