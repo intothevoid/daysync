@@ -5,17 +5,24 @@ import (
 	"net/http"
 	"time"
 
+	"daysync/api/config"
 	"daysync/api/handlers"
 
 	"github.com/gorilla/mux"
 )
 
 func main() {
+	// Load configuration
+	if err := config.LoadConfig(); err != nil {
+		log.Fatalf("Error loading config: %v", err)
+	}
+
 	r := mux.NewRouter()
 
 	// API routes
 	api := r.PathPrefix("/api").Subrouter()
 	api.HandleFunc("/motogp/{year}", handlers.GetMotoGPSeason).Methods("GET")
+	api.HandleFunc("/motogp/next", handlers.GetNextMotoGPRace).Methods("GET")
 	api.HandleFunc("/weather/{location}", handlers.GetWeather).Methods("GET")
 	api.HandleFunc("/crypto/{coin}", handlers.GetCryptoPrice).Methods("GET")
 	api.HandleFunc("/news", handlers.GetNews).Methods("GET")

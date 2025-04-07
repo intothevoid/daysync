@@ -2,16 +2,24 @@ package models
 
 import "time"
 
-type Race struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Circuit     string    `json:"circuit"`
-	Country     string    `json:"country"`
-	Date        time.Time `json:"date"`
-	IsCompleted bool      `json:"is_completed"`
+type Sessions struct {
+	Q1     string `json:"q1"`
+	Q2     string `json:"q2"`
+	Sprint string `json:"sprint"`
+	Race   string `json:"race"`
 }
 
-type Season struct {
+type Race struct {
+	Round    int      `json:"round"`
+	Name     string   `json:"name"`
+	Location string   `json:"location"`
+	Country  string   `json:"country"`
+	Circuit  string   `json:"circuit"`
+	Date     string   `json:"date"`
+	Sessions Sessions `json:"sessions"`
+}
+
+type Calendar struct {
 	Year  int    `json:"year"`
 	Races []Race `json:"races"`
 }
