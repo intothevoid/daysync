@@ -9,12 +9,18 @@ import (
 	"path/filepath"
 	"time"
 
-	"daysync/api/config"
+	"daysync/api/helpers"
 	"daysync/api/models"
 	"daysync/api/services"
 )
 
 func GetMotoGPSeason(w http.ResponseWriter, r *http.Request) {
+	// Get timezone from query parameter
+	timezone := r.URL.Query().Get("timezone")
+	if timezone == "" {
+		timezone = "UTC" // Default to UTC if not specified
+	}
+
 	// Read the JSON file
 	data, err := os.ReadFile(filepath.Join("data", "motogp-2025.json"))
 	if err != nil {
@@ -30,8 +36,14 @@ func GetMotoGPSeason(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Convert times to configured timezone and format
-	loc := config.GetTimezone()
+	// Convert times to specified timezone and format
+	loc, err := helpers.GetLocationFromAbbreviation(timezone)
+	if err != nil {
+		log.Printf("Invalid timezone: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	for i := range calendar.Races {
 		calendar.Races[i].Sessions.Q1 = formatTime(calendar.Races[i].Sessions.Q1, loc)
 		calendar.Races[i].Sessions.Q2 = formatTime(calendar.Races[i].Sessions.Q2, loc)
@@ -44,6 +56,12 @@ func GetMotoGPSeason(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetNextMotoGPRace(w http.ResponseWriter, r *http.Request) {
+	// Get timezone from query parameter
+	timezone := r.URL.Query().Get("timezone")
+	if timezone == "" {
+		timezone = "UTC" // Default to UTC if not specified
+	}
+
 	// Read the JSON file
 	data, err := os.ReadFile(filepath.Join("data", "motogp-2025.json"))
 	if err != nil {
@@ -82,8 +100,14 @@ func GetNextMotoGPRace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Convert times to configured timezone and format
-	loc := config.GetTimezone()
+	// Convert times to specified timezone and format
+	loc, err := helpers.GetLocationFromAbbreviation(timezone)
+	if err != nil {
+		log.Printf("Invalid timezone: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	nextRace.Sessions.Q1 = formatTime(nextRace.Sessions.Q1, loc)
 	nextRace.Sessions.Q2 = formatTime(nextRace.Sessions.Q2, loc)
 	nextRace.Sessions.Sprint = formatTime(nextRace.Sessions.Sprint, loc)

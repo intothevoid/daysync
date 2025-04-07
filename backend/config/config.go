@@ -2,13 +2,11 @@ package config
 
 import (
 	"os"
-	"time"
 
 	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
-	Timezone      string `yaml:"timezone"`
 	WeatherAPIKey string `yaml:"weather_api_key"`
 }
 
@@ -32,15 +30,6 @@ func LoadConfig() error {
 	}
 
 	return nil
-}
-
-func GetTimezone() *time.Location {
-	loc, err := time.LoadLocation(cfg.Timezone)
-	if err != nil {
-		// Default to UTC if timezone is invalid
-		return time.UTC
-	}
-	return loc
 }
 
 func GetWeatherAPIKey() string {
