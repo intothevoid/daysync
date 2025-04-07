@@ -1,0 +1,313 @@
+{
+  "year": 2025,
+  "races": [
+    {
+      "round": 1,
+      "name": "Grand Prix of Thailand",
+      "location": "Buriram",
+      "country": "Thailand",
+      "circuit": "Chang International Circuit",
+      "date": "2025-02-28",
+      "sessions": {
+        "q1": "2025-02-28T01:00:00Z",
+        "q2": "2025-02-28T01:35:00Z",
+        "sprint": "2025-03-01T01:00:00Z",
+        "race": "2025-03-02T01:00:00Z"
+      }
+    },
+    {
+      "round": 2,
+      "name": "Gran Premio de la República Argentina",
+      "location": "Termas de Río Hondo",
+      "country": "Argentina",
+      "circuit": "Autódromo Termas de Río Hondo",
+      "date": "2025-03-14",
+      "sessions": {
+        "q1": "2025-03-14T07:00:00Z",
+        "q2": "2025-03-14T07:35:00Z",
+        "sprint": "2025-03-15T07:00:00Z",
+        "race": "2025-03-16T07:00:00Z"
+      }
+    },
+    {
+      "round": 3,
+      "name": "Grand Prix of The Americas",
+      "location": "Austin",
+      "country": "United States",
+      "circuit": "Circuit of The Americas",
+      "date": "2025-03-28",
+      "sessions": {
+        "q1": "2025-03-28T13:00:00Z",
+        "q2": "2025-03-28T13:35:00Z",
+        "sprint": "2025-03-29T13:00:00Z",
+        "race": "2025-03-30T13:00:00Z"
+      }
+    },
+    {
+      "round": 4,
+      "name": "Grand Prix of Qatar",
+      "location": "Lusail",
+      "country": "Qatar",
+      "circuit": "Lusail International Circuit",
+      "date": "2025-04-11",
+      "sessions": {
+        "q1": "2025-04-11T05:00:00Z",
+        "q2": "2025-04-11T05:35:00Z",
+        "sprint": "2025-04-12T05:00:00Z",
+        "race": "2025-04-13T05:00:00Z"
+      }
+    },
+    {
+      "round": 5,
+      "name": "Gran Premio de España",
+      "location": "Jerez",
+      "country": "Spain",
+      "circuit": "Circuito de Jerez",
+      "date": "2025-04-25",
+      "sessions": {
+        "q1": "2025-04-25T06:00:00Z",
+        "q2": "2025-04-25T06:35:00Z",
+        "sprint": "2025-04-26T06:00:00Z",
+        "race": "2025-04-27T06:00:00Z"
+      }
+    },
+    {
+      "round": 6,
+      "name": "Grand Prix de France",
+      "location": "Le Mans",
+      "country": "France",
+      "circuit": "Bugatti Circuit",
+      "date": "2025-05-09",
+      "sessions": {
+        "q1": "2025-05-09T06:00:00Z",
+        "q2": "2025-05-09T06:35:00Z",
+        "sprint": "2025-05-10T06:00:00Z",
+        "race": "2025-05-11T06:00:00Z"
+      }
+    },
+    {
+      "round": 7,
+      "name": "British Grand Prix",
+      "location": "Silverstone",
+      "country": "United Kingdom",
+      "circuit": "Silverstone Circuit",
+      "date": "2025-05-23",
+      "sessions": {
+        "q1": "2025-05-23T07:00:00Z",
+        "q2": "2025-05-23T07:35:00Z",
+        "sprint": "2025-05-24T07:00:00Z",
+        "race": "2025-05-25T07:00:00Z"
+      }
+    },
+    {
+      "round": 8,
+      "name": "Gran Premio de Aragón",
+      "location": "Alcañiz",
+      "country": "Spain",
+      "circuit": "MotorLand Aragón",
+      "date": "2025-06-06",
+      "sessions": {
+        "q1": "2025-06-06T06:00:00Z",
+        "q2": "2025-06-06T06:35:00Z",
+        "sprint": "2025-06-07T06:00:00Z",
+        "race": "2025-06-08T06:00:00Z"
+      }
+    },
+    {
+      "round": 9,
+      "name": "Gran Premio d'Italia",
+      "location": "Mugello",
+      "country": "Italy",
+      "circuit": "Mugello Circuit",
+      "date": "2025-06-20",
+      "sessions": {
+        "q1": "2025-06-20T06:00:00Z",
+        "q2": "2025-06-20T06:35:00Z",
+        "sprint": "2025-06-21T06:00:00Z",
+        "race": "2025-06-22T06:00:00Z"
+      }
+    },
+    {
+      "round": 10,
+      "name": "TT Assen",
+      "location": "Assen",
+      "country": "Netherlands",
+      "circuit": "TT Circuit Assen",
+      "date": "2025-06-27",
+      "sessions": {
+        "q1": "2025-06-27T06:00:00Z",
+        "q2": "2025-06-27T06:35:00Z",
+        "sprint": "2025-06-28T06:00:00Z",
+        "race": "2025-06-29T06:00:00Z"
+      }
+    },
+    {
+      "round": 11,
+      "name": "Motorrad Grand Prix Deutschland",
+      "location": "Sachsenring",
+      "country": "Germany",
+      "circuit": "Sachsenring",
+      "date": "2025-07-11",
+      "sessions": {
+        "q1": "2025-07-11T06:00:00Z",
+        "q2": "2025-07-11T06:35:00Z",
+        "sprint": "2025-07-12T06:00:00Z",
+        "race": "2025-07-13T06:00:00Z"
+      }
+    },
+    {
+      "round": 12,
+      "name": "Grand Prix České Republiky",
+      "location": "Brno",
+      "country": "Czech Republic",
+      "circuit": "Brno Circuit",
+      "date": "2025-07-18",
+      "sessions": {
+        "q1": "2025-07-18T06:00:00Z",
+        "q2": "2025-07-18T06:35:00Z",
+        "sprint": "2025-07-19T06:00:00Z",
+        "race": "2025-07-20T06:00:00Z"
+      }
+    },
+    {
+      "round": 13,
+      "name": "Motorrad Grand Prix von Österreich",
+      "location": "Spielberg",
+      "country": "Austria",
+      "circuit": "Red Bull Ring",
+      "date": "2025-08-15",
+      "sessions": {
+        "q1": "2025-08-15T06:00:00Z",
+        "q2": "2025-08-15T06:35:00Z",
+        "sprint": "2025-08-16T06:00:00Z",
+        "race": "2025-08-17T06:00:00Z"
+      }
+    },
+    {
+      "round": 14,
+      "name": "Grand Prix of Hungary",
+      "location": "Mogyoród",
+      "country": "Hungary",
+      "circuit": "Hungaroring",
+      "date": "2025-08-22",
+      "sessions": {
+        "q1": "2025-08-22T01:00:00Z",
+        "q2": "2025-08-22T01:35:00Z",
+        "sprint": "2025-08-23T01:00:00Z",
+        "race": "2025-08-24T01:00:00Z"
+      }
+    },
+    {
+      "round": 15,
+      "name": "Gran Premi de Catalunya",
+      "location": "Montmeló",
+      "country": "Spain",
+      "circuit": "Circuit de Barcelona-Catalunya",
+      "date": "2025-09-05",
+      "sessions": {
+        "q1": "2025-09-05T06:00:00Z",
+        "q2": "2025-09-05T06:35:00Z",
+        "sprint": "2025-09-06T06:00:00Z",
+        "race": "2025-09-07T06:00:00Z"
+      }
+    },
+    {
+      "round": 16,
+      "name": "Gran Premio di San Marino e della Riviera di Rimini",
+      "location": "Misano",
+      "country": "San Marino",
+      "circuit": "Misano World Circuit Marco Simoncelli",
+      "date": "2025-09-12",
+      "sessions": {
+        "q1": "2025-09-12T06:00:00Z",
+        "q2": "2025-09-12T06:35:00Z",
+        "sprint": "2025-09-13T06:00:00Z",
+        "race": "2025-09-14T06:00:00Z"
+      }
+    },
+    {
+      "round": 17,
+      "name": "Grand Prix of Japan",
+      "location": "Motegi",
+      "country": "Japan",
+      "circuit": "Twin Ring Motegi",
+      "date": "2025-09-25",
+      "sessions": {
+        "q1": "2025-09-25T23:00:00Z",
+        "q2": "2025-09-25T23:35:00Z",
+        "sprint": "2025-09-26T23:00:00Z",
+        "race": "2025-09-27T23:00:00Z"
+      }
+    },
+    {
+      "round": 18,
+      "name": "Grand Prix of Indonesia",
+      "location": "Lombok",
+      "country": "Indonesia",
+      "circuit": "Mandalika International Street Circuit",
+      "date": "2025-10-03",
+      "sessions": {
+        "q1": "2025-10-03T00:00:00Z",
+        "q2": "2025-10-03T00:35:00Z",
+        "sprint": "2025-10-04T00:00:00Z",
+        "race": "2025-10-05T00:00:00Z"
+      }
+    },
+    {
+      "round": 19,
+      "name": "Australian Motorcycle Grand Prix",
+      "location": "Phillip Island",
+      "country": "Australia",
+      "circuit": "Phillip Island Circuit",
+      "date": "2025-10-16",
+      "sessions": {
+        "q1": "2025-10-16T21:00:00Z",
+        "q2": "2025-10-16T21:35:00Z",
+        "sprint": "2025-10-17T21:00:00Z",
+        "race": "2025-10-18T21:00:00Z"
+      }
+    },
+    {
+      "round": 20,
+      "name": "Grand Prix of Malaysia",
+      "location": "Sepang",
+      "country": "Malaysia",
+      "circuit": "Sepang International Circuit",
+      "date": "2025-10-24",
+      "sessions": {
+        "q1": "2025-10-24T00:00:00Z",
+        "q2": "2025-10-24T00:35:00Z",
+        "sprint": "2025-10-25T00:00:00Z",
+        "race": "2025-10-26T00:00:00Z"
+      }
+    },
+    {
+      "round": 21,
+      "name": "Grande Prémio de Portugal",
+      "location": "Portimão",
+      "country": "Portugal",
+      "circuit": "Autódromo Internacional do Algarve",
+      "date": "2025-11-07",
+      "sessions": {
+        "q1": "2025-11-07T08:00:00Z",
+        "q2": "2025-11-07T08:35:00Z",
+        "sprint": "2025-11-08T08:00:00Z",
+        "race": "2025-11-09T08:00:00Z"
+      }
+    },
+    {
+      "round": 22,
+      "name": "Gran Premio de la Comunitat Valenciana",
+      "location": "Valencia",
+      "country": "Spain",
+      "circuit": "Circuit Ricardo Tormo",
+      "date": "2025-11-14",
+      "sessions": {
+        "q1": "2025-11-14T07:00:00Z",
+        "q2": "2025-11-14T07:35:00Z",
+        "sprint": "2025-11-15T07:00:00Z",
+        "race": "2025-11-16T07:00:00Z"
+      }
+    }
+  ]
+} 
