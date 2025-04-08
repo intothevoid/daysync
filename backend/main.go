@@ -46,11 +46,11 @@ func main() {
 	// Server configuration
 	srv := &http.Server{
 		Handler:      r,
-		Addr:         "0.0.0.0:8080",
+		Addr:         "0.0.0.0:5173",
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 
-	log.Println("Starting server on :8080")
+	log.Println("Starting server on :5173")
 	log.Fatal(srv.ListenAndServe())
 }

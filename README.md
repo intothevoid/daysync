@@ -24,7 +24,7 @@ go mod tidy
 go run main.go
 ```
 
-The API will be available at `http://localhost:8080/api` with the following endpoints:
+The API will be available at `http://localhost:5173/api` with the following endpoints:
 - `GET /api/motogp/{year}` - Get MotoGP season data
 - `GET /api/weather/{location}` - Get weather data for a location
 - `GET /api/crypto/{coin}` - Get cryptocurrency price data

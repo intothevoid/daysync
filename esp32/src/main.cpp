@@ -10,7 +10,7 @@ const char* ssid = "YOUR_WIFI_SSID";
 const char* password = "YOUR_WIFI_PASSWORD";
 
 // API endpoint
-const char* apiBaseUrl = "http://YOUR_API_IP:8080";
+const char* apiBaseUrl = "http://localhost:5173";
 
 // Display setup
 TFT_eSPI tft = TFT_eSPI();
@@ -21,11 +21,25 @@ TFT_eSprite sprite = TFT_eSprite(&tft); // Sprite for smooth drawing
 #define TEXT_COLOR TFT_WHITE
 #define HEADER_COLOR TFT_SKYBLUE
 #define VALUE_COLOR TFT_GREEN
+#define TIMESTAMP_COLOR TFT_GREY
 
 // Tab state
 int currentTab = 0; // 0 for Weather, 1 for MotoGP, 2 for Crypto, 3 for News
 unsigned long lastTabSwitch = 0;
 const unsigned long tabSwitchInterval = 5000; // Switch tabs every 5 seconds
+
+// API update intervals
+const unsigned long API_UPDATE_INTERVAL = 3600000; // 1 hour in milliseconds
+unsigned long lastWeatherUpdate = 0;
+unsigned long lastMotoGPUpdate = 0;
+unsigned long lastCryptoUpdate = 0;
+unsigned long lastNewsUpdate = 0;
+
+// Cached responses
+DynamicJsonDocument weatherCache(512);
+DynamicJsonDocument motoGPCache(1024);
+DynamicJsonDocument cryptoCache(512);
+DynamicJsonDocument newsCache(2048);
 
 // Touch handling
 uint16_t t_x = 0, t_y = 0; // Touch coordinates
@@ -70,29 +84,48 @@ void setup() {
     tft.fillScreen(BACKGROUND);
 }
 
-void drawHeader(const char* title) {
+void drawHeader(const char* title, unsigned long lastUpdate) {
     sprite.fillRect(0, 0, tft.width(), 30, HEADER_COLOR);
     sprite.setTextColor(TEXT_COLOR);
     sprite.setTextSize(2);
     sprite.setCursor(10, 5);
     sprite.println(title);
+    
+    // Draw timestamp
+    sprite.setTextColor(TIMESTAMP_COLOR);
+    sprite.setTextSize(1);
+    sprite.setCursor(10, 25);
+    unsigned long hours = (millis() - lastUpdate) / 3600000;
+    sprite.print("Updated ");
+    sprite.print(hours);
+    sprite.print("h ago");
+}
+
+bool shouldUpdateAPI(unsigned long lastUpdate) {
+    return (millis() - lastUpdate) >= API_UPDATE_INTERVAL;
 }
 
 void displayWeather() {
-    HTTPClient http;
-    http.begin(String(apiBaseUrl) + "/api/weather?location=Adelaide");
+    bool needsUpdate = shouldUpdateAPI(lastWeatherUpdate);
+    
+    if (needsUpdate) {
+        HTTPClient http;
+        http.begin(String(apiBaseUrl) + "/api/weather?location=Adelaide");
+        
+        int httpCode = http.GET();
+        if (httpCode == HTTP_CODE_OK) {
+            String payload = http.getString();
+            deserializeJson(weatherCache, payload);
+            lastWeatherUpdate = millis();
+        }
+        http.end();
+    }
     
     sprite.fillSprite(BACKGROUND);
-    drawHeader("Weather - Adelaide");
+    drawHeader("Weather - Adelaide", lastWeatherUpdate);
     
-    int httpCode = http.GET();
-    if (httpCode == HTTP_CODE_OK) {
-        String payload = http.getString();
-        
-        DynamicJsonDocument doc(512);
-        deserializeJson(doc, payload);
-        
-        JsonObject weather = doc.as<JsonObject>();
+    if (weatherCache.size() > 0) {
+        JsonObject weather = weatherCache.as<JsonObject>();
         
         sprite.setTextColor(TEXT_COLOR);
         sprite.setTextSize(2);
@@ -121,28 +154,33 @@ void displayWeather() {
     } else {
         sprite.setTextColor(TFT_RED);
         sprite.setCursor(10, 40);
-        sprite.println("Failed to load weather data");
+        sprite.println("No weather data available");
     }
     
     sprite.pushSprite(0, 0);
-    http.end();
 }
 
 void displayMotoGPNextRace() {
-    HTTPClient http;
-    http.begin(String(apiBaseUrl) + "/api/motogpnextrace");
+    bool needsUpdate = shouldUpdateAPI(lastMotoGPUpdate);
+    
+    if (needsUpdate) {
+        HTTPClient http;
+        http.begin(String(apiBaseUrl) + "/api/motogpnextrace");
+        
+        int httpCode = http.GET();
+        if (httpCode == HTTP_CODE_OK) {
+            String payload = http.getString();
+            deserializeJson(motoGPCache, payload);
+            lastMotoGPUpdate = millis();
+        }
+        http.end();
+    }
     
     sprite.fillSprite(BACKGROUND);
-    drawHeader("Next MotoGP Race");
+    drawHeader("Next MotoGP Race", lastMotoGPUpdate);
     
-    int httpCode = http.GET();
-    if (httpCode == HTTP_CODE_OK) {
-        String payload = http.getString();
-        
-        DynamicJsonDocument doc(1024);
-        deserializeJson(doc, payload);
-        
-        JsonObject race = doc.as<JsonObject>();
+    if (motoGPCache.size() > 0) {
+        JsonObject race = motoGPCache.as<JsonObject>();
         
         sprite.setTextColor(TEXT_COLOR);
         sprite.setTextSize(2);
@@ -165,28 +203,33 @@ void displayMotoGPNextRace() {
     } else {
         sprite.setTextColor(TFT_RED);
         sprite.setCursor(10, 40);
-        sprite.println("Failed to load race data");
+        sprite.println("No race data available");
     }
     
     sprite.pushSprite(0, 0);
-    http.end();
 }
 
 void displayCrypto() {
-    HTTPClient http;
-    http.begin(String(apiBaseUrl) + "/api/crypto?symbol=BTCUSD");
+    bool needsUpdate = shouldUpdateAPI(lastCryptoUpdate);
+    
+    if (needsUpdate) {
+        HTTPClient http;
+        http.begin(String(apiBaseUrl) + "/api/crypto?symbol=BTCUSD");
+        
+        int httpCode = http.GET();
+        if (httpCode == HTTP_CODE_OK) {
+            String payload = http.getString();
+            deserializeJson(cryptoCache, payload);
+            lastCryptoUpdate = millis();
+        }
+        http.end();
+    }
     
     sprite.fillSprite(BACKGROUND);
-    drawHeader("Bitcoin Price");
+    drawHeader("Bitcoin Price", lastCryptoUpdate);
     
-    int httpCode = http.GET();
-    if (httpCode == HTTP_CODE_OK) {
-        String payload = http.getString();
-        
-        DynamicJsonDocument doc(512);
-        deserializeJson(doc, payload);
-        
-        JsonObject crypto = doc.as<JsonObject>();
+    if (cryptoCache.size() > 0) {
+        JsonObject crypto = cryptoCache.as<JsonObject>();
         
         sprite.setTextColor(TEXT_COLOR);
         sprite.setTextSize(2);
@@ -215,28 +258,33 @@ void displayCrypto() {
     } else {
         sprite.setTextColor(TFT_RED);
         sprite.setCursor(10, 40);
-        sprite.println("Failed to load crypto data");
+        sprite.println("No crypto data available");
     }
     
     sprite.pushSprite(0, 0);
-    http.end();
 }
 
 void displayNews() {
-    HTTPClient http;
-    http.begin(String(apiBaseUrl) + "/api/news?category=general&lang=us&country=au&max=5");
+    bool needsUpdate = shouldUpdateAPI(lastNewsUpdate);
+    
+    if (needsUpdate) {
+        HTTPClient http;
+        http.begin(String(apiBaseUrl) + "/api/news?category=general&lang=us&country=au&max=5");
+        
+        int httpCode = http.GET();
+        if (httpCode == HTTP_CODE_OK) {
+            String payload = http.getString();
+            deserializeJson(newsCache, payload);
+            lastNewsUpdate = millis();
+        }
+        http.end();
+    }
     
     sprite.fillSprite(BACKGROUND);
-    drawHeader("Latest News");
+    drawHeader("Latest News", lastNewsUpdate);
     
-    int httpCode = http.GET();
-    if (httpCode == HTTP_CODE_OK) {
-        String payload = http.getString();
-        
-        DynamicJsonDocument doc(2048);
-        deserializeJson(doc, payload);
-        
-        JsonArray items = doc.as<JsonArray>();
+    if (newsCache.size() > 0) {
+        JsonArray items = newsCache.as<JsonArray>();
         
         sprite.setTextColor(TEXT_COLOR);
         sprite.setTextSize(1);
@@ -262,11 +310,10 @@ void displayNews() {
     } else {
         sprite.setTextColor(TFT_RED);
         sprite.setCursor(10, 40);
-        sprite.println("Failed to load news data");
+        sprite.println("No news data available");
     }
     
     sprite.pushSprite(0, 0);
-    http.end();
 }
 
 void checkTouch() {
