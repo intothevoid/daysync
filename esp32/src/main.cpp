@@ -10,14 +10,14 @@ const char* ssid = "YOUR_WIFI_SSID";
 const char* password = "YOUR_WIFI_PASSWORD";
 
 // API endpoint
-const char* apiBaseUrl = "http://YOUR_API_IP:8080/api";
+const char* apiBaseUrl = "http://YOUR_API_IP:8080";
 
 // Display setup
 TFT_eSPI tft = TFT_eSPI();
 TFT_eSprite spr = TFT_eSprite(&tft);
 
 // Tab state
-int currentTab = 0; // 0 for MotoGP, 1 for Weather, 2 for Crypto, 3 for News
+int currentTab = 0; // 0 for Weather, 1 for MotoGP, 2 for Crypto, 3 for News
 unsigned long lastTabSwitch = 0;
 const unsigned long tabSwitchInterval = 5000; // Switch tabs every 5 seconds
 
@@ -38,44 +38,9 @@ void setup() {
     Serial.println("Connected to WiFi");
 }
 
-void displayMotoGPRaces() {
-    HTTPClient http;
-    http.begin(String(apiBaseUrl) + "/motogp/2024");
-    
-    int httpCode = http.GET();
-    if (httpCode == HTTP_CODE_OK) {
-        String payload = http.getString();
-        
-        DynamicJsonDocument doc(2048);
-        deserializeJson(doc, payload);
-        
-        JsonObject season = doc.as<JsonObject>();
-        JsonArray races = season["races"];
-        
-        tft.fillScreen(TFT_BLACK);
-        tft.setTextColor(TFT_WHITE);
-        tft.setTextSize(2);
-        tft.setCursor(10, 10);
-        tft.println("MotoGP 2024");
-        
-        tft.setTextSize(1);
-        int y = 40;
-        for (JsonObject race : races) {
-            tft.setCursor(10, y);
-            tft.println(race["name"].as<String>());
-            tft.setCursor(10, y + 15);
-            tft.println(race["circuit"].as<String>());
-            tft.setCursor(10, y + 30);
-            tft.println(race["date"].as<String>());
-            y += 50;
-        }
-    }
-    http.end();
-}
-
 void displayWeather() {
     HTTPClient http;
-    http.begin(String(apiBaseUrl) + "/weather/Qatar");
+    http.begin(String(apiBaseUrl) + "/api/weather?location=Adelaide");
     
     int httpCode = http.GET();
     if (httpCode == HTTP_CODE_OK) {
@@ -114,9 +79,48 @@ void displayWeather() {
     http.end();
 }
 
+void displayMotoGPNextRace() {
+    HTTPClient http;
+    http.begin(String(apiBaseUrl) + "/api/motogpnextrace");
+    
+    int httpCode = http.GET();
+    if (httpCode == HTTP_CODE_OK) {
+        String payload = http.getString();
+        
+        DynamicJsonDocument doc(1024);
+        deserializeJson(doc, payload);
+        
+        JsonObject race = doc.as<JsonObject>();
+        
+        tft.fillScreen(TFT_BLACK);
+        tft.setTextColor(TFT_WHITE);
+        tft.setTextSize(2);
+        tft.setCursor(10, 10);
+        tft.println("Next MotoGP Race");
+        
+        tft.setTextSize(1);
+        tft.setCursor(10, 40);
+        tft.print("Circuit: ");
+        tft.println(race["circuit"].as<String>());
+        
+        tft.setCursor(10, 60);
+        tft.print("Date: ");
+        tft.println(race["date"].as<String>());
+        
+        tft.setCursor(10, 80);
+        tft.print("Time: ");
+        tft.println(race["time"].as<String>());
+        
+        tft.setCursor(10, 100);
+        tft.print("Round: ");
+        tft.println(race["round"].as<String>());
+    }
+    http.end();
+}
+
 void displayCrypto() {
     HTTPClient http;
-    http.begin(String(apiBaseUrl) + "/crypto/btc");
+    http.begin(String(apiBaseUrl) + "/api/crypto?symbol=BTCUSD");
     
     int httpCode = http.GET();
     if (httpCode == HTTP_CODE_OK) {
@@ -140,7 +144,7 @@ void displayCrypto() {
         
         tft.setCursor(10, 60);
         tft.print("Price: $");
-        tft.println(crypto["price_usd"].as<float>());
+        tft.println(crypto["price"].as<float>());
         
         tft.setCursor(10, 80);
         tft.print("24h Change: ");
@@ -148,15 +152,15 @@ void displayCrypto() {
         tft.println("%");
         
         tft.setCursor(10, 100);
-        tft.print("Market Cap: $");
-        tft.println(crypto["market_cap"].as<float>());
+        tft.print("Volume: $");
+        tft.println(crypto["volume_24h"].as<float>());
     }
     http.end();
 }
 
 void displayNews() {
     HTTPClient http;
-    http.begin(String(apiBaseUrl) + "/news");
+    http.begin(String(apiBaseUrl) + "/api/news?category=general&lang=us&country=au&max=5");
     
     int httpCode = http.GET();
     if (httpCode == HTTP_CODE_OK) {
@@ -165,8 +169,7 @@ void displayNews() {
         DynamicJsonDocument doc(2048);
         deserializeJson(doc, payload);
         
-        JsonObject response = doc.as<JsonObject>();
-        JsonArray items = response["items"];
+        JsonArray items = doc.as<JsonArray>();
         
         tft.fillScreen(TFT_BLACK);
         tft.setTextColor(TFT_WHITE);
@@ -199,10 +202,10 @@ void loop() {
     // Update display based on current tab
     switch (currentTab) {
         case 0:
-            displayMotoGPRaces();
+            displayWeather();
             break;
         case 1:
-            displayWeather();
+            displayMotoGPNextRace();
             break;
         case 2:
             displayCrypto();
