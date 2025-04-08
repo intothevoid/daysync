@@ -24,6 +24,8 @@ WORKDIR /app
 COPY --from=builder /app/main .
 # Copy config file
 COPY --from=builder /app/config.yaml .
+# Copy data directory
+COPY --from=builder /app/data ./data
 
 # Expose port 5173
 EXPOSE 5173
