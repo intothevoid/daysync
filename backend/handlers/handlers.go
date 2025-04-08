@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -241,28 +242,62 @@ func GetCryptoPrice(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetNews(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement actual news retrieval from a news API
-	// This is a mock implementation
-	news := models.NewsResponse{
-		Items: []models.NewsItem{
-			{
-				Title:       "MotoGP Season Preview",
-				Description: "A comprehensive look at the upcoming MotoGP season",
-				Source:      "MotoGP.com",
-				URL:         "https://motogp.com/news",
-				PublishedAt: time.Now(),
-			},
-			{
-				Title:       "New Weather System",
-				Description: "Advanced weather tracking for race weekends",
-				Source:      "WeatherTech",
-				URL:         "https://weathertech.com/news",
-				PublishedAt: time.Now().Add(-1 * time.Hour),
-			},
-			// Add more news items as needed
-		},
+	// Get query parameters
+	category := r.URL.Query().Get("category")
+	lang := r.URL.Query().Get("lang")
+	country := r.URL.Query().Get("country")
+	max := r.URL.Query().Get("max")
+
+	// Set default values if not provided
+	if category == "" {
+		category = "general"
+	}
+	if lang == "" {
+		lang = "en"
+	}
+	if country == "" {
+		country = "au"
+	}
+	if max == "" {
+		max = "10"
 	}
 
+	// Get API key from config or environment
+	apiKey := config.GetGNewsAPIKey()
+	if apiKey == "" {
+		apiKey = os.Getenv("GNEWS_API_KEY")
+		if apiKey == "" {
+			http.Error(w, "API key not configured", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Create request to GNews
+	client := &http.Client{}
+	url := fmt.Sprintf("https://gnews.io/api/v4/top-headlines?category=%s&lang=%s&country=%s&max=%s&apikey=%s",
+		category, lang, country, max, apiKey)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Make the request
+	resp, err := client.Do(req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Check response status
+	if resp.StatusCode != http.StatusOK {
+		http.Error(w, fmt.Sprintf("API request failed with status: %d", resp.StatusCode), http.StatusInternalServerError)
+		return
+	}
+
+	// Forward the response as is
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(news)
+	io.Copy(w, resp.Body)
 }

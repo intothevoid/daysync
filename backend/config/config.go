@@ -9,6 +9,7 @@ import (
 type Config struct {
 	WeatherAPIKey string `yaml:"weather_api_key"`
 	APINinjasKey  string `yaml:"api_ninjas_key"`
+	GNewsAPIKey   string `yaml:"gnews_api_key"`
 }
 
 var cfg Config
@@ -39,4 +40,8 @@ func GetWeatherAPIKey() string {
 
 func GetAPINinjasKey() string {
 	return cfg.APINinjasKey
+}
+
+func GetGNewsAPIKey() string {
+	return cfg.GNewsAPIKey
 }
