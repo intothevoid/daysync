@@ -1,1 +1,2 @@
 weather_api_key: ""  # Leave empty to use WEATHER_API_KEY environment variable
+api_ninja_key: ""    # Leave empty to use API_NINJA_KEY environment variable

@@ -24,7 +24,7 @@ func main() {
 	api.HandleFunc("/motogp", handlers.GetMotoGPSeason).Methods("GET")
 	api.HandleFunc("/motogpnextrace", handlers.GetNextMotoGPRace).Methods("GET")
 	api.HandleFunc("/weather", handlers.GetWeather).Methods("GET")
-	api.HandleFunc("/crypto/{coin}", handlers.GetCryptoPrice).Methods("GET")
+	api.HandleFunc("/crypto", handlers.GetCryptoPrice).Methods("GET")
 	api.HandleFunc("/news", handlers.GetNews).Methods("GET")
 
 	// Add CORS middleware

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"daysync/api/config"
 	"daysync/api/helpers"
 	"daysync/api/models"
 	"daysync/api/services"
@@ -166,18 +167,77 @@ func GetWeather(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetCryptoPrice(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement actual crypto price retrieval from a crypto API
-	// This is a mock implementation
-	crypto := models.CryptoPrice{
-		Symbol:      "BTC",
-		PriceUSD:    50000.0,
-		Change24h:   2.5,
-		MarketCap:   950000000000.0,
-		LastUpdated: time.Now(),
+	symbol := r.URL.Query().Get("symbol")
+	if symbol == "" {
+		http.Error(w, "symbol parameter is required", http.StatusBadRequest)
+		return
 	}
 
+	// Get API key from config or environment
+	apiKey := config.GetAPINinjasKey()
+	if apiKey == "" {
+		apiKey = os.Getenv("API_NINJAS_KEY")
+		if apiKey == "" {
+			http.Error(w, "API key not configured", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Create request to API Ninja
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", "https://api.api-ninjas.com/v1/cryptoprice?symbol="+symbol, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	req.Header.Set("X-Api-Key", apiKey)
+
+	// Make the request
+	resp, err := client.Do(req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Check response status
+	if resp.StatusCode != http.StatusOK {
+		http.Error(w, fmt.Sprintf("API request failed with status: %d", resp.StatusCode), http.StatusInternalServerError)
+		return
+	}
+
+	// Parse the response
+	var result struct {
+		Symbol    string `json:"symbol"`
+		Price     string `json:"price"`
+		Timestamp int64  `json:"timestamp"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Convert timestamp to time.Time
+	t := time.Unix(result.Timestamp, 0)
+	// Format the time as "dd/mm/yy hh:mm:ss"
+	formattedTime := t.Format("02/01/06 15:04:05")
+
+	// Create response with formatted time
+	response := struct {
+		Symbol    string `json:"symbol"`
+		Price     string `json:"price"`
+		Timestamp string `json:"timestamp"`
+	}{
+		Symbol:    result.Symbol,
+		Price:     result.Price,
+		Timestamp: formattedTime,
+	}
+
+	// Send the response
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(crypto)
+	json.NewEncoder(w).Encode(response)
 }
 
 func GetNews(w http.ResponseWriter, r *http.Request) {
