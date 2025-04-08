@@ -54,17 +54,3 @@ func main() {
 	log.Println("Starting server on :8080")
 	log.Fatal(srv.ListenAndServe())
 }
-
-func getMotoGPSeason(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	year := vars["year"]
-	// TODO: Implement MotoGP season data retrieval
-	w.Write([]byte("MotoGP season " + year))
-}
-
-func getWeather(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	location := vars["location"]
-	// TODO: Implement weather data retrieval
-	w.Write([]byte("Weather for " + location))
-}
