@@ -12,10 +12,10 @@ const char* ssid = "YOUR_WIFI_SSID";
 const char* password = "YOUR_WIFI_PASSWORD";
 
 // API endpoints
-const char* motogpEndpoint = "https://daysync.karan.myds.me/motogpnextrace";
-const char* cryptoEndpoint = "https://daysync.karan.myds.me/crypto?symbol=BTCUSD";
-const char* weatherEndpoint = "https://daysync.karan.myds.me/weather?location=adelaide";
-const char* newsEndpoint = "https://daysync.karan.myds.me/news?location=au&language=en&max=5";
+const char* motogpEndpoint = "https://daysync.karan.myds.me/api/motogpnextrace";
+const char* cryptoEndpoint = "https://daysync.karan.myds.me/api/crypto?symbol=BTCUSD";
+const char* weatherEndpoint = "https://daysync.karan.myds.me/api/weather?location=adelaide";
+const char* newsEndpoint = "https://daysync.karan.myds.me/api/news?location=au&language=en&max=5";
 
 // Data storage
 String motogpData = "";
@@ -27,7 +27,7 @@ String newsData = "";
 int currentScreen = 0;
 const int SCREEN_COUNT = 4;
 unsigned long lastScreenChange = 0;
-const int SCREEN_CHANGE_INTERVAL = 5000; // 5 seconds
+const int SCREEN_CHANGE_INTERVAL = 10000; // 10 seconds
 unsigned long lastDataUpdate = 0;
 const int DATA_UPDATE_INTERVAL = 3600000; // 60 minutes
 
