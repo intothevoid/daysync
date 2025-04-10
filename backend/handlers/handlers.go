@@ -17,6 +17,8 @@ import (
 )
 
 func GetMotoGPSeason(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Incoming request: %s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
+
 	// Get timezone from query parameter
 	timezone := r.URL.Query().Get("timezone")
 	if timezone == "" {
@@ -58,6 +60,8 @@ func GetMotoGPSeason(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetNextMotoGPRace(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Incoming request: %s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
+
 	// Get timezone from query parameter
 	timezone := r.URL.Query().Get("timezone")
 	if timezone == "" {
@@ -98,6 +102,7 @@ func GetNextMotoGPRace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if nextRace == nil {
+		log.Printf("No upcoming races found")
 		http.Error(w, "no upcoming races found", http.StatusNotFound)
 		return
 	}
@@ -150,8 +155,11 @@ func getOrdinal(n int) string {
 }
 
 func GetWeather(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Incoming request: %s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
+
 	location := r.URL.Query().Get("location")
 	if location == "" {
+		log.Printf("Missing location parameter")
 		http.Error(w, "location parameter is required", http.StatusBadRequest)
 		return
 	}
@@ -168,8 +176,11 @@ func GetWeather(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetCryptoPrice(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Incoming request: %s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
+
 	symbol := r.URL.Query().Get("symbol")
 	if symbol == "" {
+		log.Printf("Missing symbol parameter")
 		http.Error(w, "symbol parameter is required", http.StatusBadRequest)
 		return
 	}
@@ -179,6 +190,7 @@ func GetCryptoPrice(w http.ResponseWriter, r *http.Request) {
 	if apiKey == "" {
 		apiKey = os.Getenv("API_NINJAS_KEY")
 		if apiKey == "" {
+			log.Printf("API key not configured")
 			http.Error(w, "API key not configured", http.StatusInternalServerError)
 			return
 		}
@@ -188,6 +200,7 @@ func GetCryptoPrice(w http.ResponseWriter, r *http.Request) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "https://api.api-ninjas.com/v1/cryptoprice?symbol="+symbol, nil)
 	if err != nil {
+		log.Printf("Error creating request: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -197,6 +210,7 @@ func GetCryptoPrice(w http.ResponseWriter, r *http.Request) {
 	// Make the request
 	resp, err := client.Do(req)
 	if err != nil {
+		log.Printf("Error making API request: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -204,6 +218,7 @@ func GetCryptoPrice(w http.ResponseWriter, r *http.Request) {
 
 	// Check response status
 	if resp.StatusCode != http.StatusOK {
+		log.Printf("API request failed with status: %d", resp.StatusCode)
 		http.Error(w, fmt.Sprintf("API request failed with status: %d", resp.StatusCode), http.StatusInternalServerError)
 		return
 	}
@@ -216,6 +231,7 @@ func GetCryptoPrice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		log.Printf("Error parsing API response: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -242,6 +258,8 @@ func GetCryptoPrice(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetNews(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Incoming request: %s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
+
 	// Get query parameters
 	category := r.URL.Query().Get("category")
 	lang := r.URL.Query().Get("lang")
@@ -267,6 +285,7 @@ func GetNews(w http.ResponseWriter, r *http.Request) {
 	if apiKey == "" {
 		apiKey = os.Getenv("GNEWS_API_KEY")
 		if apiKey == "" {
+			log.Printf("API key not configured")
 			http.Error(w, "API key not configured", http.StatusInternalServerError)
 			return
 		}
@@ -279,6 +298,7 @@ func GetNews(w http.ResponseWriter, r *http.Request) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
+		log.Printf("Error creating request: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -286,6 +306,7 @@ func GetNews(w http.ResponseWriter, r *http.Request) {
 	// Make the request
 	resp, err := client.Do(req)
 	if err != nil {
+		log.Printf("Error making API request: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -293,6 +314,7 @@ func GetNews(w http.ResponseWriter, r *http.Request) {
 
 	// Check response status
 	if resp.StatusCode != http.StatusOK {
+		log.Printf("API request failed with status: %d", resp.StatusCode)
 		http.Error(w, fmt.Sprintf("API request failed with status: %d", resp.StatusCode), http.StatusInternalServerError)
 		return
 	}
