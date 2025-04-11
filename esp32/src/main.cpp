@@ -1,3 +1,5 @@
+#include "User_Setup.h"
+
 #include <lvgl.h>
 #include <TFT_eSPI.h>
 
@@ -59,6 +61,14 @@ String motogp_data;
 // MotoGP screen objects
 static lv_obj_t * motogp_label;
 
+// Bitcoin data variables
+String bitcoin_data;
+unsigned long last_bitcoin_timestamp = -HTTP_CACHE_INTERVAL; // Force first call
+
+// News data variables
+String news_data;
+unsigned long last_news_timestamp = -HTTP_CACHE_INTERVAL; // Force first call
+
 // Function declarations
 void get_weather_data();
 void get_weather_description(int code);
@@ -66,6 +76,10 @@ void lv_create_main_gui(void);
 void get_motogp_data();
 void create_motogp_screen();
 void switch_screen();
+void get_bitcoin_data();
+void create_bitcoin_screen();
+void get_news_data();
+void create_news_screen(int page);
 
 // If logging is enabled, it will inform the user about what is happening in the library
 void log_print(lv_log_level_t level, const char * buf) {
@@ -157,17 +171,19 @@ void get_weather_data() {
 // Function to create a title bar
 lv_obj_t* create_title_bar(lv_obj_t* parent, const char* title) {
   lv_obj_t* title_bar = lv_obj_create(parent);
-  lv_obj_set_size(title_bar, SCREEN_WIDTH - 10, 25); // Reduced height
-  lv_obj_align(title_bar, LV_ALIGN_TOP_MID, 0, 0); // Aligned to top
-  lv_obj_set_style_bg_color(title_bar, lv_color_hex(0x87CEEB), 0); // Sky blue color
+  lv_obj_set_size(title_bar, 320, 40); // Set width to 320 (screen height when rotated) and height to 40
+  lv_obj_set_pos(title_bar, 0, 0); // Position at absolute 0,0
+  lv_obj_set_style_bg_color(title_bar, lv_color_hex(0x2196F3), 0); // Material Design Blue
+  lv_obj_set_style_bg_opa(title_bar, LV_OPA_COVER, 0); // Full opacity
   lv_obj_set_style_border_width(title_bar, 0, 0);
-  lv_obj_set_style_radius(title_bar, 0, 0); // Square corners
+  lv_obj_set_style_pad_all(title_bar, 10, 0); // Add some padding
+  lv_obj_set_style_radius(title_bar, 0, 0); // No rounded corners
   
   lv_obj_t* title_label = lv_label_create(title_bar);
   lv_label_set_text(title_label, title);
-  lv_obj_set_style_text_font(title_label, &lv_font_montserrat_16, 0); // Smaller font
+  lv_obj_set_style_text_font(title_label, &lv_font_montserrat_16, 0);
   lv_obj_set_style_text_color(title_label, lv_color_white(), 0);
-  lv_obj_align(title_label, LV_ALIGN_LEFT_MID, 5, 0);
+  lv_obj_align(title_label, LV_ALIGN_CENTER, 0, 0); // Center the text
   
   return title_bar;
 }
@@ -179,11 +195,11 @@ void create_about_screen() {
   
   // Create a container for better layout
   lv_obj_t * cont = lv_obj_create(about_screen);
-  lv_obj_set_size(cont, SCREEN_WIDTH - 10, SCREEN_HEIGHT - 10);
-  lv_obj_align(cont, LV_ALIGN_CENTER, 0, 0);
+  lv_obj_set_size(cont, 320, 240); // Set to full screen size (rotated)
+  lv_obj_set_pos(cont, 0, 0); // Position at absolute 0,0
   lv_obj_set_style_bg_color(cont, lv_color_white(), 0);
   lv_obj_set_style_border_width(cont, 0, 0);
-  lv_obj_set_style_pad_all(cont, 5, 0);
+  lv_obj_set_style_pad_all(cont, 0, 0);
   
   // Add title bar
   create_title_bar(cont, "About");
@@ -193,14 +209,21 @@ void create_about_screen() {
   lv_label_set_text(version_label, "Daysync v0.1");
   lv_obj_set_style_text_font(version_label, &lv_font_montserrat_26, 0);
   lv_obj_set_style_text_color(version_label, lv_color_hex(0xE31837), 0);
-  lv_obj_align(version_label, LV_ALIGN_CENTER, 0, 0);
+  lv_obj_align(version_label, LV_ALIGN_TOP_MID, 0, 70);
+
+  // Author label
+  lv_obj_t * author_label = lv_label_create(cont);
+  lv_label_set_text(author_label, "by bindok");
+  lv_obj_set_style_text_font(author_label, &lv_font_montserrat_16, 0);
+  lv_obj_set_style_text_color(author_label, lv_color_hex(0xE31837), 0);
+  lv_obj_align(author_label, LV_ALIGN_TOP_MID, 0, 110);
   
   // GitHub link
   lv_obj_t * github_label = lv_label_create(cont);
   lv_label_set_text(github_label, "github.com/intothevoid/daysync");
   lv_obj_set_style_text_font(github_label, &lv_font_montserrat_14, 0);
   lv_obj_set_style_text_color(github_label, lv_color_hex(0x808080), 0);
-  lv_obj_align(github_label, LV_ALIGN_CENTER, 0, 40);
+  lv_obj_align(github_label, LV_ALIGN_TOP_MID, 0, 140);
   
   // Load the screen
   lv_screen_load(about_screen);
@@ -213,11 +236,11 @@ void lv_create_main_gui(void) {
   
   // Create a container for better layout
   lv_obj_t * cont = lv_obj_create(weather_screen);
-  lv_obj_set_size(cont, SCREEN_WIDTH - 10, SCREEN_HEIGHT - 10);
-  lv_obj_align(cont, LV_ALIGN_CENTER, 0, 0);
+  lv_obj_set_size(cont, 320, 240); // Set to full screen size (rotated)
+  lv_obj_set_pos(cont, 0, 0); // Position at absolute 0,0
   lv_obj_set_style_bg_color(cont, lv_color_white(), 0);
   lv_obj_set_style_border_width(cont, 0, 0);
-  lv_obj_set_style_pad_all(cont, 5, 0);
+  lv_obj_set_style_pad_all(cont, 0, 0);
 
   // Add title bar
   create_title_bar(cont, "Weather (Adelaide)");
@@ -306,11 +329,11 @@ void create_motogp_screen() {
   
   // Create a container for better layout
   lv_obj_t * cont = lv_obj_create(motogp_screen);
-  lv_obj_set_size(cont, SCREEN_WIDTH - 10, SCREEN_HEIGHT - 10);
-  lv_obj_align(cont, LV_ALIGN_CENTER, 0, 0);
+  lv_obj_set_size(cont, 320, 240); // Set to full screen size (rotated)
+  lv_obj_set_pos(cont, 0, 0); // Position at absolute 0,0
   lv_obj_set_style_bg_color(cont, lv_color_white(), 0);
   lv_obj_set_style_border_width(cont, 0, 0);
-  lv_obj_set_style_pad_all(cont, 5, 0);
+  lv_obj_set_style_pad_all(cont, 0, 0);
   
   // Add title bar
   create_title_bar(cont, "MotoGP - Upcoming");
@@ -323,33 +346,33 @@ void create_motogp_screen() {
     // Race name - largest text
     lv_obj_t * name_label = lv_label_create(cont);
     lv_label_set_text(name_label, doc["name"].as<const char*>());
-    lv_obj_set_style_text_font(name_label, &lv_font_montserrat_20, 0); // Reduced from 22
+    lv_obj_set_style_text_font(name_label, &lv_font_montserrat_22, 0); 
     lv_obj_set_style_text_color(name_label, lv_color_hex(0xE31837), 0);
-    lv_obj_align(name_label, LV_ALIGN_TOP_MID, 0, 35);
+    lv_obj_align(name_label, LV_ALIGN_TOP_MID, 0, 50);
     
     // Location and Circuit - medium text
     lv_obj_t * location_label = lv_label_create(cont);
     String location_text = String(doc["location"].as<const char*>()) + ", " + String(doc["country"].as<const char*>());
     lv_label_set_text(location_label, location_text.c_str());
-    lv_obj_set_style_text_font(location_label, &lv_font_montserrat_16, 0); // Reduced from 18
-    lv_obj_align(location_label, LV_ALIGN_TOP_MID, 0, 60);
+    lv_obj_set_style_text_font(location_label, &lv_font_montserrat_16, 0); 
+    lv_obj_align(location_label, LV_ALIGN_TOP_MID, 0, 80);
     
     lv_obj_t * circuit_label = lv_label_create(cont);
     lv_label_set_text(circuit_label, doc["circuit"].as<const char*>());
-    lv_obj_set_style_text_font(circuit_label, &lv_font_montserrat_14, 0); // Reduced from 16
-    lv_obj_align(circuit_label, LV_ALIGN_TOP_MID, 0, 80);
+    lv_obj_set_style_text_font(circuit_label, &lv_font_montserrat_14, 0); 
+    lv_obj_align(circuit_label, LV_ALIGN_TOP_MID, 0, 100);
     
     // Date - medium text
     lv_obj_t * date_label = lv_label_create(cont);
     lv_label_set_text(date_label, doc["date"].as<const char*>());
-    lv_obj_set_style_text_font(date_label, &lv_font_montserrat_16, 0); // Reduced from 18
+    lv_obj_set_style_text_font(date_label, &lv_font_montserrat_14, 0); 
     lv_obj_set_style_text_color(date_label, lv_color_hex(0xE31837), 0);
-    lv_obj_align(date_label, LV_ALIGN_TOP_MID, 0, 105);
+    lv_obj_align(date_label, LV_ALIGN_TOP_MID, 0, 120);
     
     // Sessions - smaller text in a single column
     JsonObject sessions = doc["sessions"];
-    int y_offset = 130; // Starting y position
-    int row_spacing = 35; // Spacing between rows
+    int y_offset = 150; // Starting y position
+    int row_spacing = 20; // Spacing between rows
     
     // Create session labels in a single column
     lv_obj_t * q1_label = lv_label_create(cont);
@@ -383,6 +406,193 @@ void create_motogp_screen() {
   lv_screen_load(motogp_screen);
 }
 
+void get_bitcoin_data() {
+  if (WiFi.status() == WL_CONNECTED) {
+    // Only update if more than 60 minutes have passed
+    if (millis() - last_bitcoin_timestamp > HTTP_CACHE_INTERVAL) {
+      HTTPClient http;
+      String url = "https://daysync.karan.myds.me/api/crypto?symbol=BTCUSD";
+      Serial.println("Fetching Bitcoin data from: " + url);
+      http.begin(url);
+      int httpCode = http.GET();
+
+      if (httpCode > 0) {
+        if (httpCode == HTTP_CODE_OK) {
+          bitcoin_data = http.getString();
+          Serial.println("Bitcoin API Response:");
+          Serial.println(bitcoin_data);
+          last_bitcoin_timestamp = millis();
+        } else {
+          Serial.println("Bitcoin API request failed with HTTP code: " + String(httpCode));
+        }
+      } else {
+        Serial.printf("Bitcoin API GET request failed, error: %s\n", http.errorToString(httpCode).c_str());
+      }
+      http.end();
+    } else {
+      Serial.println("Using cached Bitcoin data");
+    }
+  } else {
+    Serial.println("Not connected to Wi-Fi for Bitcoin data");
+  }
+}
+
+void create_bitcoin_screen() {
+  // Create a new screen for Bitcoin data
+  lv_obj_t * bitcoin_screen = lv_obj_create(NULL);
+  lv_obj_set_style_bg_color(bitcoin_screen, lv_color_white(), 0);
+  
+  // Create a container for better layout
+  lv_obj_t * cont = lv_obj_create(bitcoin_screen);
+  lv_obj_set_size(cont, 320, 240); // Set to full screen size (rotated)
+  lv_obj_set_pos(cont, 0, 0); // Position at absolute 0,0
+  lv_obj_set_style_bg_color(cont, lv_color_white(), 0);
+  lv_obj_set_style_border_width(cont, 0, 0);
+  lv_obj_set_style_pad_all(cont, 0, 0);
+  
+  // Add title bar
+  create_title_bar(cont, "Bitcoin USD");
+  
+  // Parse JSON data
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, bitcoin_data);
+  
+  if (!error) {
+    // Symbol in large text
+    lv_obj_t * symbol_label = lv_label_create(cont);
+    lv_label_set_text(symbol_label, "BTC");
+    lv_obj_set_style_text_font(symbol_label, &lv_font_montserrat_26, 0);
+    lv_obj_set_style_text_color(symbol_label, lv_color_hex(0xE31837), 0);
+    lv_obj_align(symbol_label, LV_ALIGN_TOP_MID, 0, 60);
+    
+    // Price in large text
+    lv_obj_t * price_label = lv_label_create(cont);
+    String price_str = "$" + String(doc["price"].as<const char*>());
+    price_str = price_str.substring(0, price_str.length() - 9); // Remove the trailing zeros
+    lv_label_set_text(price_label, price_str.c_str());
+    lv_obj_set_style_text_font(price_label, &lv_font_montserrat_26, 0);
+    lv_obj_align(price_label, LV_ALIGN_TOP_MID, 0, 100);
+    
+    // Timestamp in smaller text
+    lv_obj_t * time_label = lv_label_create(cont);
+    lv_label_set_text(time_label, String("Last Update: " + String(doc["timestamp"].as<const char*>())).c_str());
+    lv_obj_set_style_text_font(time_label, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_color(time_label, lv_color_hex(0x808080), 0);
+    lv_obj_align(time_label, LV_ALIGN_TOP_MID, 0, 140);
+  } else {
+    // Error message if JSON parsing fails
+    lv_obj_t * error_label = lv_label_create(cont);
+    lv_label_set_text(error_label, "Error loading Bitcoin data");
+    lv_obj_set_style_text_font(error_label, &lv_font_montserrat_20, 0);
+    lv_obj_align(error_label, LV_ALIGN_CENTER, 0, 0);
+  }
+  
+  // Load the screen
+  lv_screen_load(bitcoin_screen);
+}
+
+void get_news_data() {
+  if (WiFi.status() == WL_CONNECTED) {
+    // Only update if more than 60 minutes have passed
+    if (millis() - last_news_timestamp > HTTP_CACHE_INTERVAL) {
+      HTTPClient http;
+      String url = "https://daysync.karan.myds.me/api/news?location=au&max=10";
+      Serial.println("Fetching News data from: " + url);
+      http.begin(url);
+      int httpCode = http.GET();
+
+      if (httpCode > 0) {
+        if (httpCode == HTTP_CODE_OK) {
+          news_data = http.getString();
+          Serial.println("News API Response:");
+          Serial.println(news_data);
+          last_news_timestamp = millis();
+        } else {
+          Serial.println("News API request failed with HTTP code: " + String(httpCode));
+        }
+      } else {
+        Serial.printf("News API GET request failed, error: %s\n", http.errorToString(httpCode).c_str());
+      }
+      http.end();
+    } else {
+      Serial.println("Using cached News data");
+    }
+  } else {
+    Serial.println("Not connected to Wi-Fi for News data");
+  }
+}
+
+void create_news_screen(int page) {
+  // Create a new screen for News data
+  lv_obj_t * news_screen = lv_obj_create(NULL);
+  lv_obj_set_style_bg_color(news_screen, lv_color_white(), 0);
+  
+  // Create a container for better layout
+  lv_obj_t * cont = lv_obj_create(news_screen);
+  lv_obj_set_size(cont, 320, 240); // Set to full screen size (rotated)
+  lv_obj_set_pos(cont, 0, 0); // Position at absolute 0,0
+  lv_obj_set_style_bg_color(cont, lv_color_white(), 0);
+  lv_obj_set_style_border_width(cont, 0, 0);
+  lv_obj_set_style_pad_all(cont, 0, 0);
+  
+  // Add title bar
+  create_title_bar(cont, page == 1 ? "News (1/2)" : "News (2/2)");
+  
+  // Parse JSON data
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, news_data);
+  
+  if (!error) {
+    // Create a container for the news titles
+    lv_obj_t * list_cont = lv_obj_create(cont);
+    lv_obj_set_size(list_cont, 300, 180); // Leave space for title bar
+    lv_obj_align(list_cont, LV_ALIGN_TOP_MID, 0, 50); // Position below title bar
+    lv_obj_set_style_bg_color(list_cont, lv_color_white(), 0);
+    lv_obj_set_style_border_width(list_cont, 0, 0);
+    lv_obj_set_style_pad_all(list_cont, 0, 0);
+    
+    // Get the articles array
+    JsonArray articles = doc["articles"];
+    int y_offset = 0;
+    int row_spacing = 35; // Space between articles
+    const int MAX_CHARS = 95; // Maximum characters for 2 lines
+    
+    // Calculate start and end indices for this page
+    int start_index = (page == 1) ? 0 : 5;
+    int end_index = (page == 1) ? 5 : 10;
+    
+    // Display 5 titles for this page
+    for (int i = start_index; i < end_index && i < articles.size(); i++) {
+      String article_title = articles[i]["title"].as<const char*>();
+      String prefix = String(i + 1) + ". ";
+      String title = prefix + article_title;
+      
+      // Truncate title if longer than MAX_CHARS
+      if (title.length() > MAX_CHARS) {
+        title = title.substring(0, MAX_CHARS - 3) + "...";
+      }
+      
+      lv_obj_t * title_label = lv_label_create(list_cont);
+      lv_obj_set_style_text_font(title_label, &lv_font_montserrat_12, 0); // Reduced font size
+      lv_obj_set_width(title_label, 280); // Width for wrapping
+      lv_label_set_long_mode(title_label, LV_LABEL_LONG_WRAP);
+      lv_label_set_text(title_label, title.c_str());
+      lv_obj_align(title_label, LV_ALIGN_TOP_LEFT, 10, y_offset);
+      
+      y_offset += row_spacing;
+    }
+  } else {
+    // Error message if JSON parsing fails
+    lv_obj_t * error_label = lv_label_create(cont);
+    lv_label_set_text(error_label, "Error loading News data");
+    lv_obj_set_style_text_font(error_label, &lv_font_montserrat_20, 0);
+    lv_obj_align(error_label, LV_ALIGN_CENTER, 0, 0);
+  }
+  
+  // Load the screen
+  lv_screen_load(news_screen);
+}
+
 void switch_screen() {
   if (millis() - last_screen_switch > SCREEN_SWITCH_INTERVAL) {
     // Get the current screen
@@ -394,9 +604,18 @@ void switch_screen() {
         create_motogp_screen();
         break;
       case 1:
-        create_about_screen();
+        create_bitcoin_screen();
         break;
       case 2:
+        create_news_screen(1); // First news page
+        break;
+      case 3:
+        create_news_screen(2); // Second news page
+        break;
+      case 4:
+        create_about_screen();
+        break;
+      case 5:
         lv_create_main_gui();
         break;
     }
@@ -406,7 +625,7 @@ void switch_screen() {
       lv_obj_del(current);
     }
     
-    current_screen = (current_screen + 1) % 3;
+    current_screen = (current_screen + 1) % 6; // Now we have 6 screens
     last_screen_switch = millis();
   }
 }
@@ -433,11 +652,11 @@ void setup() {
   
   // Create a container for better layout
   lv_obj_t * cont = lv_obj_create(startup_screen);
-  lv_obj_set_size(cont, SCREEN_WIDTH - 10, SCREEN_HEIGHT - 10);
+  lv_obj_set_size(cont, SCREEN_WIDTH, SCREEN_HEIGHT);
   lv_obj_align(cont, LV_ALIGN_CENTER, 0, 0);
   lv_obj_set_style_bg_color(cont, lv_color_white(), 0);
   lv_obj_set_style_border_width(cont, 0, 0);
-  lv_obj_set_style_pad_all(cont, 5, 0);
+  lv_obj_set_style_pad_all(cont, 0, 0);
 
   // Add title bar
   create_title_bar(cont, "Daysync");
@@ -448,8 +667,10 @@ void setup() {
   lv_obj_set_style_text_font(status_label, &lv_font_montserrat_20, 0);
   lv_obj_align(status_label, LV_ALIGN_CENTER, 0, 0);
 
-  // Load the startup screen
+  // Load the startup screen immediately
   lv_screen_load(startup_screen);
+  lv_task_handler();
+  delay(100); // Give LVGL time to render
   
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
@@ -466,6 +687,7 @@ void setup() {
     }
     delay(500);
     Serial.print(".");
+    lv_task_handler(); // Keep LVGL responsive
   }
   
   if (connected) {
@@ -475,11 +697,14 @@ void setup() {
     // Update status to show success
     lv_label_set_text(status_label, "Connected!");
     lv_obj_set_style_text_color(status_label, lv_color_hex(0x00AA00), 0);
+    lv_task_handler();
     delay(1000); // Show success message briefly
     
     // Get initial data
     get_weather_data();
     get_motogp_data();
+    get_bitcoin_data();
+    get_news_data(); // Add initial News data fetch
     
     // Start with weather screen
     lv_create_main_gui();
@@ -487,15 +712,15 @@ void setup() {
     Serial.println("\nFailed to connect to WiFi");
     
     // Update status to show error
-    lv_label_set_text(status_label, "Could not connect to WiFi");
+    lv_label_set_text(status_label, "Unable to connect to WiFi.");
     lv_obj_set_style_text_color(status_label, lv_color_hex(0xAA0000), 0);
+    lv_task_handler();
     
-    // Create error screen
-    lv_obj_t * error_label = lv_label_create(cont);
-    lv_label_set_text(error_label, "Please check your WiFi settings\nand restart the device");
-    lv_obj_set_style_text_font(error_label, &lv_font_montserrat_16, 0);
-    lv_obj_set_style_text_color(error_label, lv_color_hex(0x808080), 0);
-    lv_obj_align(error_label, LV_ALIGN_CENTER, 0, 40);
+    // Stay on error screen indefinitely
+    while (1) {
+      lv_task_handler();
+      delay(100);
+    }
   }
 }
 
