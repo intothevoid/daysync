@@ -26,6 +26,8 @@ COPY --from=builder /app/main .
 COPY --from=builder /app/config.yaml .
 # Copy data directory
 COPY --from=builder /app/data ./data
+# Copy testdata directory
+COPY --from=builder /app/testdata ./testdata
 
 # Expose port 5173
 EXPOSE 5173
