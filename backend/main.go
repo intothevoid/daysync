@@ -49,6 +49,7 @@ func main() {
 	api.HandleFunc("/weather", handlers.GetWeather).Methods("GET")
 	api.HandleFunc("/crypto", handlers.GetCryptoPrice).Methods("GET")
 	api.HandleFunc("/news", handlers.GetNews).Methods("GET")
+	api.HandleFunc("/finance", handlers.GetStockInfo).Methods("GET")
 
 	// Add CORS middleware
 	r.Use(func(next http.Handler) http.Handler {

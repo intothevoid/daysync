@@ -473,3 +473,141 @@ func GetNews(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(newsResponse)
 }
+
+// GetStockInfo handles requests for stock information
+func GetStockInfo(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Incoming request: %s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
+
+	symbol := r.URL.Query().Get("symbol")
+	if symbol == "" {
+		log.Printf("Missing symbol parameter")
+		http.Error(w, "symbol parameter is required", http.StatusBadRequest)
+		return
+	}
+
+	// Check cache first
+	cacheKey := fmt.Sprintf("stock:%s", symbol)
+	if cached, exists := apiCache.Get(cacheKey); exists {
+		log.Printf("[CACHE HIT] Returning cached stock data for %s", symbol)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(cached)
+		return
+	}
+
+	log.Printf("[API CALL] No cache found for stock data, calling Yahoo Finance API for %s", symbol)
+
+	var response interface{}
+	var err error
+
+	// Try to get real data first
+	if !testMode {
+		// Create request to Yahoo Finance API
+		client := &http.Client{
+			Timeout: 10 * time.Second,
+		}
+		url := fmt.Sprintf("https://query1.finance.yahoo.com/v8/finance/chart/%s?1d&interval=1d", symbol)
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			log.Printf("Error creating request: %v", err)
+			// Fall back to test mode on request creation error
+			response, err = services.GetTestStockInfo(symbol)
+			if err != nil {
+				log.Printf("Error getting test stock info: %v", err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		} else {
+			// Add browser-like headers
+			req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+			req.Header.Set("Accept", "application/json, text/plain, */*")
+			req.Header.Set("Accept-Language", "en-US,en;q=0.9")
+			req.Header.Set("Origin", "https://finance.yahoo.com")
+			req.Header.Set("Referer", "https://finance.yahoo.com/")
+
+			// Add rate limiting delay
+			time.Sleep(1 * time.Second)
+
+			// Make the request
+			resp, err := client.Do(req)
+			if err != nil {
+				log.Printf("Error making API request: %v", err)
+				// Fall back to test mode on request error
+				response, err = services.GetTestStockInfo(symbol)
+				if err != nil {
+					log.Printf("Error getting test stock info: %v", err)
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			} else {
+				defer resp.Body.Close()
+
+				// Check response status
+				if resp.StatusCode == http.StatusTooManyRequests {
+					log.Printf("Rate limited by Yahoo Finance API, falling back to test mode")
+					response, err = services.GetTestStockInfo(symbol)
+				} else if resp.StatusCode != http.StatusOK {
+					log.Printf("API request failed with status: %d", resp.StatusCode)
+					http.Error(w, fmt.Sprintf("API request failed with status: %d", resp.StatusCode), http.StatusInternalServerError)
+					return
+				} else {
+					// Parse the response
+					var result struct {
+						Chart struct {
+							Result []struct {
+								Meta struct {
+									Symbol               string  `json:"symbol"`
+									LongName             string  `json:"longName"`
+									Timezone             string  `json:"timezone"`
+									ExchangeName         string  `json:"exchangeName"`
+									Gmtoffset            int     `json:"gmtoffset"`
+									FiftyTwoWeekHigh     float64 `json:"fiftyTwoWeekHigh"`
+									FiftyTwoWeekLow      float64 `json:"fiftyTwoWeekLow"`
+									RegularMarketDayHigh float64 `json:"regularMarketDayHigh"`
+									RegularMarketDayLow  float64 `json:"regularMarketDayLow"`
+									PreviousClose        float64 `json:"previousClose"`
+									Scale                int     `json:"scale"`
+									PriceHint            int     `json:"priceHint"`
+								} `json:"meta"`
+							} `json:"result"`
+						} `json:"chart"`
+					}
+
+					if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+						log.Printf("Error parsing API response: %v", err)
+						// Fall back to test mode on parse error
+						response, err = services.GetTestStockInfo(symbol)
+					} else if len(result.Chart.Result) == 0 {
+						log.Printf("No data found for symbol %s", symbol)
+						http.Error(w, "no data found", http.StatusNotFound)
+						return
+					} else {
+						response = result.Chart.Result[0].Meta
+					}
+				}
+			}
+		}
+	}
+
+	// If we're in test mode or fell back to test mode
+	if testMode || response == nil {
+		response, err = services.GetTestStockInfo(symbol)
+		if err != nil {
+			log.Printf("Error getting test stock info: %v", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	if err != nil {
+		log.Printf("Error getting stock info: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Cache the response
+	apiCache.Set(cacheKey, response)
+	log.Printf("[CACHE SET] Cached stock data for %s", symbol)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
