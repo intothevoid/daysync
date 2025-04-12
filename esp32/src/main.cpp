@@ -296,7 +296,7 @@ void get_motogp_data() {
     // Only update if more than 60 minutes have passed
     if (millis() - last_motogp_timestamp > HTTP_CACHE_INTERVAL) {
       HTTPClient http;
-      String url = "https://daysync.karan.myds.me/api/motogpnextrace";
+      String url = "https://daysync.karan.myds.me/api/motogpnextrace?timezone=ACDT";
       Serial.println("Fetching MotoGP data from: " + url);
       http.begin(url);
       int httpCode = http.GET();
