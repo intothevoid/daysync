@@ -1,0 +1,33 @@
+{
+  "year": 2025,
+  "races": [
+    {
+      "round": 1,
+      "name": "F1: Grand Prix (Australian Grand Prix)",
+      "location": "Phillip Island",
+      "country": "Australia",
+      "circuit": "Phillip Island Circuit",
+      "date": "2025-03-16",
+      "sessions": {
+        "q1": "2025-03-16T04:00:00Z",
+        "q2": "2025-03-16T04:35:00Z",
+        "sprint": "2025-03-17T04:00:00Z",
+        "race": "2025-03-16T06:00:00Z"
+      }
+    },
+    {
+      "round": 2,
+      "name": "F1: Grand Prix (Bahrain Grand Prix)",
+      "location": "Sakhir",
+      "country": "Bahrain",
+      "circuit": "Bahrain International Circuit",
+      "date": "2025-03-23",
+      "sessions": {
+        "q1": "2025-03-23T12:00:00Z",
+        "q2": "2025-03-23T12:35:00Z",
+        "sprint": "2025-03-24T12:00:00Z",
+        "race": "2025-03-23T14:00:00Z"
+      }
+    }
+  ]
+} 

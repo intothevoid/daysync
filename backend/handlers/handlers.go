@@ -181,6 +181,86 @@ func GetNextMotoGPRace(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(nextRace)
 }
 
+func GetNextFormula1Race(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Incoming request: %s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
+
+	// Get timezone from query parameter
+	timezone := r.URL.Query().Get("timezone")
+	if timezone == "" {
+		timezone = "UTC" // Default to UTC if not specified
+	}
+
+	// Check cache first
+	cacheKey := fmt.Sprintf("formula1:nextrace:%s", timezone)
+	if cached, exists := apiCache.Get(cacheKey); exists {
+		log.Printf("[CACHE HIT] Returning cached next Formula 1 race data for timezone %s", timezone)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(cached)
+		return
+	}
+
+	log.Printf("[API CALL] No cache found for next Formula 1 race, reading from file for timezone %s", timezone)
+
+	// Read the JSON file
+	data, err := os.ReadFile(filepath.Join("data", "formula1-2025.json"))
+	if err != nil {
+		log.Printf("Error reading data file: %v", err)
+		http.Error(w, "error reading data", http.StatusInternalServerError)
+		return
+	}
+
+	var calendar models.Calendar
+	if err := json.Unmarshal(data, &calendar); err != nil {
+		log.Printf("Error parsing JSON data: %v", err)
+		http.Error(w, "error parsing data", http.StatusInternalServerError)
+		return
+	}
+
+	// Get current time in UTC
+	now := time.Now().UTC()
+
+	// Find the next race
+	var nextRace *models.Race
+	for i := range calendar.Races {
+		raceTime, err := time.Parse(time.RFC3339, calendar.Races[i].Sessions.Race)
+		if err != nil {
+			log.Printf("Error parsing race time: %v", err)
+			continue
+		}
+
+		if raceTime.After(now) {
+			nextRace = &calendar.Races[i]
+			break
+		}
+	}
+
+	if nextRace == nil {
+		log.Printf("No upcoming races found")
+		http.Error(w, "no upcoming races found", http.StatusNotFound)
+		return
+	}
+
+	// Convert times to specified timezone and format
+	loc, err := helpers.GetLocationFromAbbreviation(timezone)
+	if err != nil {
+		log.Printf("Invalid timezone: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	nextRace.Sessions.Q1 = formatTime(nextRace.Sessions.Q1, loc)
+	nextRace.Sessions.Q2 = formatTime(nextRace.Sessions.Q2, loc)
+	nextRace.Sessions.Sprint = formatTime(nextRace.Sessions.Sprint, loc)
+	nextRace.Sessions.Race = formatTime(nextRace.Sessions.Race, loc)
+
+	// Cache the response
+	apiCache.Set(cacheKey, nextRace)
+	log.Printf("[CACHE SET] Cached next Formula 1 race data for timezone %s", timezone)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(nextRace)
+}
+
 func formatTime(timeStr string, loc *time.Location) string {
 	t, err := time.Parse(time.RFC3339, timeStr)
 	if err != nil {
@@ -610,4 +690,73 @@ func GetStockInfo(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+}
+
+func GetFormula1Season(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Incoming request: %s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
+
+	// Get timezone from query parameter
+	timezone := r.URL.Query().Get("timezone")
+	if timezone == "" {
+		timezone = "UTC" // Default to UTC if not specified
+	}
+
+	// Check cache first
+	cacheKey := fmt.Sprintf("formula1:season:%s", timezone)
+	if cached, exists := apiCache.Get(cacheKey); exists {
+		log.Printf("[CACHE HIT] Returning cached Formula 1 season data for timezone %s", timezone)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(cached)
+		return
+	}
+
+	log.Printf("[API CALL] No cache found for Formula 1 season data, reading from file for timezone %s", timezone)
+
+	// Read the JSON file
+	data, err := os.ReadFile(filepath.Join("data", "formula1-2025.json"))
+	if err != nil {
+		log.Printf("Error reading data file: %v", err)
+		http.Error(w, "error reading data", http.StatusInternalServerError)
+		return
+	}
+
+	var calendar models.Calendar
+	if err := json.Unmarshal(data, &calendar); err != nil {
+		log.Printf("Error parsing JSON data: %v", err)
+		http.Error(w, "error parsing data", http.StatusInternalServerError)
+		return
+	}
+
+	// Convert times to specified timezone and format
+	loc, err := helpers.GetLocationFromAbbreviation(timezone)
+	if err != nil {
+		log.Printf("Invalid timezone: %v", err)
+		http.Error(w, "invalid timezone", http.StatusBadRequest)
+		return
+	}
+
+	// Create a copy of the calendar to avoid modifying the cached version
+	calendarCopy := calendar
+	for i := range calendarCopy.Races {
+		// Parse each time string and convert to the specified timezone
+		if q1, err := time.Parse(time.RFC3339, calendarCopy.Races[i].Sessions.Q1); err == nil {
+			calendarCopy.Races[i].Sessions.Q1 = q1.In(loc).Format(time.RFC3339)
+		}
+		if q2, err := time.Parse(time.RFC3339, calendarCopy.Races[i].Sessions.Q2); err == nil {
+			calendarCopy.Races[i].Sessions.Q2 = q2.In(loc).Format(time.RFC3339)
+		}
+		if sprint, err := time.Parse(time.RFC3339, calendarCopy.Races[i].Sessions.Sprint); err == nil {
+			calendarCopy.Races[i].Sessions.Sprint = sprint.In(loc).Format(time.RFC3339)
+		}
+		if race, err := time.Parse(time.RFC3339, calendarCopy.Races[i].Sessions.Race); err == nil {
+			calendarCopy.Races[i].Sessions.Race = race.In(loc).Format(time.RFC3339)
+		}
+	}
+
+	// Cache the response
+	apiCache.Set(cacheKey, calendarCopy)
+	log.Printf("[CACHE SET] Cached Formula 1 season data for timezone %s", timezone)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(calendarCopy)
 }

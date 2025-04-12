@@ -144,3 +144,65 @@ func TestCacheStockData(t *testing.T) {
 		t.Errorf("Expected nil after expiration, got %v", val)
 	}
 }
+
+func TestCacheFormula1RaceData(t *testing.T) {
+	c := NewCache(100 * time.Millisecond)
+
+	// Define the race data type
+	type RaceData struct {
+		Round    int    `json:"round"`
+		Name     string `json:"name"`
+		Location string `json:"location"`
+		Country  string `json:"country"`
+		Circuit  string `json:"circuit"`
+		Date     string `json:"date"`
+		Sessions struct {
+			Q1     string `json:"q1"`
+			Q2     string `json:"q2"`
+			Sprint string `json:"sprint"`
+			Race   string `json:"race"`
+		} `json:"sessions"`
+	}
+
+	// Test race data caching
+	raceData := RaceData{
+		Round:    1,
+		Name:     "F1: Grand Prix (Australian Grand Prix)",
+		Location: "Phillip Island",
+		Country:  "Australia",
+		Circuit:  "Phillip Island Circuit",
+		Date:     "2025-03-16",
+		Sessions: struct {
+			Q1     string `json:"q1"`
+			Q2     string `json:"q2"`
+			Sprint string `json:"sprint"`
+			Race   string `json:"race"`
+		}{
+			Q1:     "2025-03-16T04:00:00Z",
+			Q2:     "2025-03-16T04:35:00Z",
+			Sprint: "2025-03-17T04:00:00Z",
+			Race:   "2025-03-16T06:00:00Z",
+		},
+	}
+
+	// Set race data in cache
+	c.Set("formula1:nextrace:ACDT", raceData)
+
+	// Get race data from cache
+	if val, exists := c.Get("formula1:nextrace:ACDT"); !exists {
+		t.Errorf("Expected race data to exist in cache")
+	} else {
+		// Verify the data matches
+		if cachedData, ok := val.(RaceData); !ok {
+			t.Errorf("Expected RaceData type, got %T", val)
+		} else if cachedData != raceData {
+			t.Errorf("Expected race data to match, got %v", cachedData)
+		}
+	}
+
+	// Test cache expiration
+	time.Sleep(200 * time.Millisecond)
+	if val, exists := c.Get("formula1:nextrace:ACDT"); exists || val != nil {
+		t.Errorf("Expected nil after expiration, got %v", val)
+	}
+}
