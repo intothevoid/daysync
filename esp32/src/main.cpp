@@ -76,12 +76,18 @@ unsigned long last_crypto_timestamp = -HTTP_CACHE_INTERVAL;
 String news_data;
 unsigned long last_news_timestamp = -HTTP_CACHE_INTERVAL; // Force first call
 
+// Store F1 data
+String f1_data;
+unsigned long last_f1_timestamp = -HTTP_CACHE_INTERVAL; // Force first call
+
 // Function declarations
 void get_weather_data();
 void get_weather_description(int code);
 void lv_create_main_gui(void);
 void get_motogp_data();
 void create_motogp_screen();
+void get_f1_data();
+void create_f1_screen();
 void switch_screen();
 void get_all_crypto_data();
 void create_bitcoin_screen();
@@ -642,6 +648,121 @@ void create_news_screen(int page) {
   lv_screen_load(news_screen);
 }
 
+void get_f1_data() {
+  if (WiFi.status() == WL_CONNECTED) {
+    // Only update if more than 60 minutes have passed
+    if (millis() - last_f1_timestamp > HTTP_CACHE_INTERVAL) {
+      HTTPClient http;
+      String url = String(BASE_URL) + "/api/formula1nextrace?timezone=ACDT";
+      Serial.println("Fetching Formula 1 data from: " + url);
+      http.begin(url);
+      int httpCode = http.GET();
+
+      if (httpCode > 0) {
+        if (httpCode == HTTP_CODE_OK) {
+          f1_data = http.getString();
+          Serial.println("Formula 1 API Response:");
+          Serial.println(f1_data);
+          last_f1_timestamp = millis();
+        } else {
+          Serial.println("Formula 1 API request failed with HTTP code: " + String(httpCode));
+        }
+      } else {
+        Serial.printf("Formula 1 API GET request failed, error: %s\n", http.errorToString(httpCode).c_str());
+      }
+      http.end();
+    } else {
+      Serial.println("Using cached Formula 1 data");
+    }
+  } else {
+    Serial.println("Not connected to Wi-Fi for Formula 1 data");
+  }
+}
+
+void create_f1_screen() {
+  // Create a new screen for Formula 1 data
+  lv_obj_t * f1_screen = lv_obj_create(NULL);
+  lv_obj_set_style_bg_color(f1_screen, lv_color_white(), 0);
+  
+  // Create a container for better layout
+  lv_obj_t * cont = lv_obj_create(f1_screen);
+  lv_obj_set_size(cont, 320, 240); // Set to full screen size (rotated)
+  lv_obj_set_pos(cont, 0, 0); // Position at absolute 0,0
+  lv_obj_set_style_bg_color(cont, lv_color_white(), 0);
+  lv_obj_set_style_border_width(cont, 0, 0);
+  lv_obj_set_style_pad_all(cont, 0, 0);
+  
+  // Add title bar
+  create_title_bar(cont, "Formula 1 (Upcoming)");
+  
+  // Parse JSON data
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, f1_data);
+  
+  if (!error) {
+    // Race name - largest text
+    lv_obj_t * name_label = lv_label_create(cont);
+    lv_label_set_text(name_label, doc["name"].as<const char*>());
+    lv_obj_set_style_text_font(name_label, &lv_font_montserrat_22, 0); 
+    lv_obj_set_style_text_color(name_label, lv_color_hex(0xE31837), 0);
+    lv_obj_align(name_label, LV_ALIGN_TOP_MID, 0, 50);
+    
+    // Location and Circuit - medium text
+    lv_obj_t * location_label = lv_label_create(cont);
+    String location_text = String(doc["location"].as<const char*>()) + ", " + String(doc["country"].as<const char*>());
+    lv_label_set_text(location_label, location_text.c_str());
+    lv_obj_set_style_text_font(location_label, &lv_font_montserrat_16, 0); 
+    lv_obj_align(location_label, LV_ALIGN_TOP_MID, 0, 80);
+    
+    lv_obj_t * circuit_label = lv_label_create(cont);
+    lv_label_set_text(circuit_label, doc["circuit"].as<const char*>());
+    lv_obj_set_style_text_font(circuit_label, &lv_font_montserrat_14, 0); 
+    lv_obj_align(circuit_label, LV_ALIGN_TOP_MID, 0, 100);
+    
+    // Date - medium text
+    lv_obj_t * date_label = lv_label_create(cont);
+    lv_label_set_text(date_label, doc["date"].as<const char*>());
+    lv_obj_set_style_text_font(date_label, &lv_font_montserrat_14, 0); 
+    lv_obj_set_style_text_color(date_label, lv_color_hex(0xE31837), 0);
+    lv_obj_align(date_label, LV_ALIGN_TOP_MID, 0, 120);
+    
+    // Sessions - smaller text in a single column
+    JsonObject sessions = doc["sessions"];
+    int y_offset = 150; // Starting y position
+    int row_spacing = 20; // Spacing between rows
+    
+    // Create session labels in a single column
+    lv_obj_t * q1_label = lv_label_create(cont);
+    lv_label_set_text(q1_label, ("Q1: " + String(sessions["q1"].as<const char*>())).c_str());
+    lv_obj_set_style_text_font(q1_label, &lv_font_montserrat_14, 0);
+    lv_obj_align(q1_label, LV_ALIGN_TOP_MID, 0, y_offset);
+    
+    lv_obj_t * q2_label = lv_label_create(cont);
+    lv_label_set_text(q2_label, ("Q2: " + String(sessions["q2"].as<const char*>())).c_str());
+    lv_obj_set_style_text_font(q2_label, &lv_font_montserrat_14, 0);
+    lv_obj_align(q2_label, LV_ALIGN_TOP_MID, 0, y_offset + row_spacing);
+    
+    lv_obj_t * sprint_label = lv_label_create(cont);
+    lv_label_set_text(sprint_label, ("Sprint: " + String(sessions["sprint"].as<const char*>())).c_str());
+    lv_obj_set_style_text_font(sprint_label, &lv_font_montserrat_14, 0);
+    lv_obj_align(sprint_label, LV_ALIGN_TOP_MID, 0, y_offset + (row_spacing * 2));
+    
+    lv_obj_t * race_label = lv_label_create(cont);
+    lv_label_set_text(race_label, ("Race: " + String(sessions["race"].as<const char*>())).c_str());
+    lv_obj_set_style_text_font(race_label, &lv_font_montserrat_14, 0);
+    lv_obj_align(race_label, LV_ALIGN_TOP_MID, 0, y_offset + (row_spacing * 3));
+  } else {
+    // Error message if JSON parsing fails
+    lv_obj_t * error_label = lv_label_create(cont);
+    lv_label_set_text(error_label, "Error loading Formula 1 data");
+    lv_obj_set_style_text_font(error_label, &lv_font_montserrat_20, 0);
+    lv_obj_align(error_label, LV_ALIGN_CENTER, 0, 0);
+  }
+  
+  // Load the screen
+  lv_screen_load(f1_screen);
+}
+
 void switch_screen() {
   if (millis() - last_screen_switch > SCREEN_SWITCH_INTERVAL) {
     // Get the current screen
@@ -653,18 +774,21 @@ void switch_screen() {
         create_motogp_screen();
         break;
       case 1:
-        create_bitcoin_screen();
+        create_f1_screen();
         break;
       case 2:
-        create_news_screen(1); // First news page
+        create_bitcoin_screen();
         break;
       case 3:
-        create_news_screen(2); // Second news page
+        create_news_screen(1); // First news page
         break;
       case 4:
-        create_about_screen();
+        create_news_screen(2); // Second news page
         break;
       case 5:
+        create_about_screen();
+        break;
+      case 6:
         lv_create_main_gui();
         break;
     }
@@ -674,7 +798,7 @@ void switch_screen() {
       lv_obj_del(current);
     }
     
-    current_screen = (current_screen + 1) % 6; // Now we have 6 screens
+    current_screen = (current_screen + 1) % 7; // Now we have 7 screens
     last_screen_switch = millis();
   }
 }
@@ -752,6 +876,7 @@ void setup() {
     // Get initial data
     get_weather_data();
     get_motogp_data();
+    get_f1_data();
     get_all_crypto_data();
     get_news_data();
     
