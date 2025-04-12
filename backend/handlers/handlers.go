@@ -71,23 +71,34 @@ func GetMotoGPSeason(w http.ResponseWriter, r *http.Request) {
 	loc, err := helpers.GetLocationFromAbbreviation(timezone)
 	if err != nil {
 		log.Printf("Invalid timezone: %v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "invalid timezone", http.StatusBadRequest)
 		return
 	}
 
-	for i := range calendar.Races {
-		calendar.Races[i].Sessions.Q1 = formatTime(calendar.Races[i].Sessions.Q1, loc)
-		calendar.Races[i].Sessions.Q2 = formatTime(calendar.Races[i].Sessions.Q2, loc)
-		calendar.Races[i].Sessions.Sprint = formatTime(calendar.Races[i].Sessions.Sprint, loc)
-		calendar.Races[i].Sessions.Race = formatTime(calendar.Races[i].Sessions.Race, loc)
+	// Create a copy of the calendar to avoid modifying the cached version
+	calendarCopy := calendar
+	for i := range calendarCopy.Races {
+		// Parse each time string and convert to the specified timezone
+		if q1, err := time.Parse(time.RFC3339, calendarCopy.Races[i].Sessions.Q1); err == nil {
+			calendarCopy.Races[i].Sessions.Q1 = q1.In(loc).Format(time.RFC3339)
+		}
+		if q2, err := time.Parse(time.RFC3339, calendarCopy.Races[i].Sessions.Q2); err == nil {
+			calendarCopy.Races[i].Sessions.Q2 = q2.In(loc).Format(time.RFC3339)
+		}
+		if sprint, err := time.Parse(time.RFC3339, calendarCopy.Races[i].Sessions.Sprint); err == nil {
+			calendarCopy.Races[i].Sessions.Sprint = sprint.In(loc).Format(time.RFC3339)
+		}
+		if race, err := time.Parse(time.RFC3339, calendarCopy.Races[i].Sessions.Race); err == nil {
+			calendarCopy.Races[i].Sessions.Race = race.In(loc).Format(time.RFC3339)
+		}
 	}
 
 	// Cache the response
-	apiCache.Set(cacheKey, calendar)
+	apiCache.Set(cacheKey, calendarCopy)
 	log.Printf("[CACHE SET] Cached MotoGP season data for timezone %s", timezone)
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(calendar)
+	json.NewEncoder(w).Encode(calendarCopy)
 }
 
 func GetNextMotoGPRace(w http.ResponseWriter, r *http.Request) {
