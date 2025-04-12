@@ -7,12 +7,15 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
-// Replace with your network credentials
-const char* ssid = "YOUR_SSID";
-const char* password = "YOUR_PASSWORD";
+// Base URL for all API calls
+// const char* BASE_URL = "https://daysync.karan.myds.me";
 
-// Weather API configuration
-const char* weather_api_url = "https://daysync.karan.myds.me/api/weather?location=adelaide";
+// Base URL for local development - replace 192.168.50.180 with your computer's IP address
+const char* BASE_URL = "http://192.168.50.180:5173";
+
+// Replace with your network credentials
+const char* ssid = "SSID";
+const char* password = "PASSWORD";
 
 // Enter your location
 String location = "Adelaide";
@@ -61,9 +64,13 @@ String motogp_data;
 // MotoGP screen objects
 static lv_obj_t * motogp_label;
 
-// Bitcoin data variables
-String bitcoin_data;
-unsigned long last_bitcoin_timestamp = -HTTP_CACHE_INTERVAL; // Force first call
+// Crypto data variables
+String btc_data;
+String eth_data;
+String doge_data;
+String xrp_data;
+String bnb_data;
+unsigned long last_crypto_timestamp = -HTTP_CACHE_INTERVAL;
 
 // News data variables
 String news_data;
@@ -76,7 +83,7 @@ void lv_create_main_gui(void);
 void get_motogp_data();
 void create_motogp_screen();
 void switch_screen();
-void get_bitcoin_data();
+void get_all_crypto_data();
 void create_bitcoin_screen();
 void get_news_data();
 void create_news_screen(int page);
@@ -110,8 +117,9 @@ void get_weather_data() {
     // Only update if more than 60 minutes have passed
     if (millis() - last_weather_timestamp > HTTP_CACHE_INTERVAL) {
       HTTPClient http;
-      Serial.println("Fetching weather data from: " + String(weather_api_url));
-      http.begin(weather_api_url);
+      String url = String(BASE_URL) + "/api/weather?location=adelaide";
+      Serial.println("Fetching weather data from: " + url);
+      http.begin(url);
       int httpCode = http.GET();
 
       if (httpCode > 0) {
@@ -296,7 +304,7 @@ void get_motogp_data() {
     // Only update if more than 60 minutes have passed
     if (millis() - last_motogp_timestamp > HTTP_CACHE_INTERVAL) {
       HTTPClient http;
-      String url = "https://daysync.karan.myds.me/api/motogpnextrace?timezone=ACDT";
+      String url = String(BASE_URL) + "/api/motogpnextrace?timezone=ACDT";
       Serial.println("Fetching MotoGP data from: " + url);
       http.begin(url);
       int httpCode = http.GET();
@@ -406,89 +414,130 @@ void create_motogp_screen() {
   lv_screen_load(motogp_screen);
 }
 
-void get_bitcoin_data() {
+void get_crypto_data(String symbol, String &data) {
   if (WiFi.status() == WL_CONNECTED) {
-    // Only update if more than 60 minutes have passed
-    if (millis() - last_bitcoin_timestamp > HTTP_CACHE_INTERVAL) {
-      HTTPClient http;
-      String url = "https://daysync.karan.myds.me/api/crypto?symbol=BTCUSD";
-      Serial.println("Fetching Bitcoin data from: " + url);
-      http.begin(url);
-      int httpCode = http.GET();
+    HTTPClient http;
+    String url = String(BASE_URL) + "/api/crypto?symbol=" + symbol;
+    Serial.println("Fetching " + symbol + " data from: " + url);
+    http.begin(url);
+    int httpCode = http.GET();
 
-      if (httpCode > 0) {
-        if (httpCode == HTTP_CODE_OK) {
-          bitcoin_data = http.getString();
-          Serial.println("Bitcoin API Response:");
-          Serial.println(bitcoin_data);
-          last_bitcoin_timestamp = millis();
-        } else {
-          Serial.println("Bitcoin API request failed with HTTP code: " + String(httpCode));
-        }
+    if (httpCode > 0) {
+      if (httpCode == HTTP_CODE_OK) {
+        data = http.getString();
+        Serial.println(symbol + " API Response:");
+        Serial.println(data);
       } else {
-        Serial.printf("Bitcoin API GET request failed, error: %s\n", http.errorToString(httpCode).c_str());
+        Serial.println(symbol + " API request failed with HTTP code: " + String(httpCode));
       }
-      http.end();
     } else {
-      Serial.println("Using cached Bitcoin data");
+      Serial.printf("%s API GET request failed, error: %s\n", symbol.c_str(), http.errorToString(httpCode).c_str());
     }
+    http.end();
+  }
+}
+
+void get_all_crypto_data() {
+  if (millis() - last_crypto_timestamp > HTTP_CACHE_INTERVAL) {
+    get_crypto_data("BTCUSD", btc_data);
+    get_crypto_data("ETHUSD", eth_data);
+    get_crypto_data("DOGEUSD", doge_data);
+    get_crypto_data("XRPUSD", xrp_data);
+    get_crypto_data("BNBUSD", bnb_data);
+    last_crypto_timestamp = millis();
   } else {
-    Serial.println("Not connected to Wi-Fi for Bitcoin data");
+    Serial.println("Using cached crypto data");
+  }
+}
+
+void create_small_crypto_display(lv_obj_t * parent, String data, String expected_symbol, int y_offset) {
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, data);
+  
+  if (!error) {
+    // Debug logging
+    Serial.println("Creating display for " + expected_symbol + " with data: " + data);
+    
+    // Use the expected symbol instead of parsing from response
+    String symbol = expected_symbol;
+    String price_str = "$" + String(doc["price"].as<const char*>());
+    String symbol_with_price = symbol + " " + price_str;
+    
+    // Symbol
+    lv_obj_t * symbol_label = lv_label_create(parent);
+    lv_label_set_text(symbol_label, symbol_with_price.c_str());
+    lv_obj_set_style_text_font(symbol_label, &lv_font_montserrat_16, 0);
+    lv_obj_set_style_text_color(symbol_label, lv_color_black(), 0); // Change to black
+    lv_obj_align(symbol_label, LV_ALIGN_TOP_MID, 0, y_offset); // Offset to left for alignment with price
+    
+    Serial.println("Created display for " + symbol + " with price " + price_str);
+  } else {
+    Serial.println("Failed to parse JSON for " + expected_symbol + ": " + error.c_str());
   }
 }
 
 void create_bitcoin_screen() {
-  // Create a new screen for Bitcoin data
-  lv_obj_t * bitcoin_screen = lv_obj_create(NULL);
-  lv_obj_set_style_bg_color(bitcoin_screen, lv_color_white(), 0);
+  Serial.println("Creating Bitcoin screen");
+  
+  // Create a new screen for crypto data
+  lv_obj_t * crypto_screen = lv_obj_create(NULL);
+  lv_obj_set_style_bg_color(crypto_screen, lv_color_white(), 0);
   
   // Create a container for better layout
-  lv_obj_t * cont = lv_obj_create(bitcoin_screen);
-  lv_obj_set_size(cont, 320, 240); // Set to full screen size (rotated)
-  lv_obj_set_pos(cont, 0, 0); // Position at absolute 0,0
+  lv_obj_t * cont = lv_obj_create(crypto_screen);
+  lv_obj_set_size(cont, 320, 240);
+  lv_obj_set_pos(cont, 0, 0);
   lv_obj_set_style_bg_color(cont, lv_color_white(), 0);
   lv_obj_set_style_border_width(cont, 0, 0);
   lv_obj_set_style_pad_all(cont, 0, 0);
   
   // Add title bar
-  create_title_bar(cont, "Bitcoin USD");
+  create_title_bar(cont, "Crypto Prices");
   
-  // Parse JSON data
+  // Parse BTC data
   JsonDocument doc;
-  DeserializationError error = deserializeJson(doc, bitcoin_data);
+  DeserializationError error = deserializeJson(doc, btc_data);
   
   if (!error) {
-    // Symbol in large text
+    Serial.println("Successfully parsed BTC data: " + btc_data);
+    
+    // BTC Symbol in large text
     lv_obj_t * symbol_label = lv_label_create(cont);
     lv_label_set_text(symbol_label, "BTC");
     lv_obj_set_style_text_font(symbol_label, &lv_font_montserrat_26, 0);
     lv_obj_set_style_text_color(symbol_label, lv_color_hex(0xE31837), 0);
     lv_obj_align(symbol_label, LV_ALIGN_TOP_MID, 0, 60);
     
-    // Price in large text
+    // BTC Price in large text
     lv_obj_t * price_label = lv_label_create(cont);
     String price_str = "$" + String(doc["price"].as<const char*>());
-    price_str = price_str.substring(0, price_str.length() - 9); // Remove the trailing zeros
+    price_str = price_str.substring(0, price_str.length() - 9);
     lv_label_set_text(price_label, price_str.c_str());
     lv_obj_set_style_text_font(price_label, &lv_font_montserrat_26, 0);
     lv_obj_align(price_label, LV_ALIGN_TOP_MID, 0, 100);
     
-    // Timestamp in smaller text
-    lv_obj_t * time_label = lv_label_create(cont);
-    lv_label_set_text(time_label, String("Last Update: " + String(doc["timestamp"].as<const char*>())).c_str());
-    lv_obj_set_style_text_font(time_label, &lv_font_montserrat_14, 0);
-    lv_obj_set_style_text_color(time_label, lv_color_hex(0x808080), 0);
-    lv_obj_align(time_label, LV_ALIGN_TOP_MID, 0, 140);
+    Serial.println("Created BTC display with price " + price_str);
+    
+    // Add other cryptos vertically
+    int start_y = 140; // Start position for additional coins
+    int spacing = 20; // Space between each coin row
+    
+    create_small_crypto_display(cont, eth_data, "ETH", start_y);
+    create_small_crypto_display(cont, xrp_data, "XRP", start_y + spacing);
+    create_small_crypto_display(cont, doge_data, "DOGE", start_y + (spacing * 2));
+    create_small_crypto_display(cont, bnb_data, "BNB", start_y + (spacing * 3));
   } else {
+    Serial.println("Failed to parse BTC data: " + String(error.c_str()));
     // Error message if JSON parsing fails
     lv_obj_t * error_label = lv_label_create(cont);
-    lv_label_set_text(error_label, "Error loading Bitcoin data");
+    lv_label_set_text(error_label, "Error loading crypto data");
     lv_obj_set_style_text_font(error_label, &lv_font_montserrat_20, 0);
     lv_obj_align(error_label, LV_ALIGN_CENTER, 0, 0);
   }
   
   // Load the screen
-  lv_screen_load(bitcoin_screen);
+  lv_screen_load(crypto_screen);
+  Serial.println("Bitcoin screen created and loaded");
 }
 
 void get_news_data() {
@@ -496,7 +545,7 @@ void get_news_data() {
     // Only update if more than 60 minutes have passed
     if (millis() - last_news_timestamp > HTTP_CACHE_INTERVAL) {
       HTTPClient http;
-      String url = "https://daysync.karan.myds.me/api/news?location=au&max=10";
+      String url = String(BASE_URL) + "/api/news?location=au&max=10";
       Serial.println("Fetching News data from: " + url);
       http.begin(url);
       int httpCode = http.GET();
@@ -555,7 +604,7 @@ void create_news_screen(int page) {
     JsonArray articles = doc["articles"];
     int y_offset = 0;
     int row_spacing = 35; // Space between articles
-    const int MAX_CHARS = 95; // Maximum characters for 2 lines
+    const int MAX_CHARS = 80; // Maximum characters for 2 lines
     
     // Calculate start and end indices for this page
     int start_index = (page == 1) ? 0 : 5;
@@ -703,8 +752,8 @@ void setup() {
     // Get initial data
     get_weather_data();
     get_motogp_data();
-    get_bitcoin_data();
-    get_news_data(); // Add initial News data fetch
+    get_all_crypto_data();
+    get_news_data();
     
     // Start with weather screen
     lv_create_main_gui();
