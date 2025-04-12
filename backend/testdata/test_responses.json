@@ -1,0 +1,64 @@
+{
+    "weather": {
+        "london": {
+            "location": "London",
+            "temperature": 15,
+            "condition": "Partly Cloudy",
+            "humidity": 65,
+            "wind_speed": 12
+        },
+        "sydney": {
+            "location": "Sydney",
+            "temperature": 22,
+            "condition": "Sunny",
+            "humidity": 45,
+            "wind_speed": 8
+        }
+    },
+    "crypto": {
+        "BTC": {
+            "symbol": "BTC",
+            "price": "50000.00",
+            "timestamp": "2024-03-20 12:00:00"
+        },
+        "ETH": {
+            "symbol": "ETH",
+            "price": "3000.00",
+            "timestamp": "2024-03-20 12:00:00"
+        }
+    },
+    "news": {
+        "general_en_au_10": {
+            "totalArticles": 10,
+            "articles": [
+                {
+                    "title": "Test News Article 1",
+                    "description": "This is a test news article",
+                    "url": "https://example.com/news/1",
+                    "publishedAt": "2024-03-20T12:00:00Z"
+                }
+            ]
+        }
+    },
+    "motogp": {
+        "season_UTC": {
+            "year": 2024,
+            "races": [
+                {
+                    "round": 1,
+                    "name": "Qatar Grand Prix",
+                    "location": "Lusail",
+                    "country": "Qatar",
+                    "circuit": "Lusail International Circuit",
+                    "date": "2024-03-10",
+                    "sessions": {
+                        "q1": "2024-03-10T12:00:00Z",
+                        "q2": "2024-03-10T12:35:00Z",
+                        "sprint": "2024-03-11T12:00:00Z",
+                        "race": "2024-03-11T14:00:00Z"
+                    }
+                }
+            ]
+        }
+    }
+} 

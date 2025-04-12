@@ -1,20 +1,43 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"daysync/api/config"
 	"daysync/api/handlers"
+	"daysync/api/helpers"
 
 	"github.com/gorilla/mux"
 )
 
 func main() {
+	// Parse command line flags
+	icsToJsonFlag := flag.String("ics-to-json", "", "Convert ICS file to JSON format")
+	testModeFlag := flag.Bool("test-mode", false, "Run in test mode (use dummy data)")
+	flag.Parse()
+
+	// If --ics-to-json flag is provided, convert the file and exit
+	if *icsToJsonFlag != "" {
+		if err := helpers.IcsToJson(*icsToJsonFlag); err != nil {
+			log.Fatalf("Error converting ICS to JSON: %v", err)
+		}
+		log.Printf("Successfully converted %s to JSON", *icsToJsonFlag)
+		os.Exit(0)
+	}
+
 	// Load configuration
 	if err := config.LoadConfig(); err != nil {
 		log.Fatalf("Error loading config: %v", err)
+	}
+
+	// Set test mode if flag is provided
+	if *testModeFlag {
+		log.Println("Running in test mode - using dummy data")
+		handlers.SetTestMode(true)
 	}
 
 	r := mux.NewRouter()
