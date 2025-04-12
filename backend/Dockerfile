@@ -20,6 +20,9 @@ FROM alpine:latest
 
 WORKDIR /app
 
+# Install timezone data
+RUN apk add --no-cache tzdata
+
 # Copy the binary from builder
 COPY --from=builder /app/main .
 # Copy config file
