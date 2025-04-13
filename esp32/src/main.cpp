@@ -1,4 +1,5 @@
 #include "User_Setup.h"
+#include "wifi_config.h"
 
 #include <lvgl.h>
 #include <TFT_eSPI.h>
@@ -12,10 +13,6 @@ const char* BASE_URL = "https://daysync.karan.myds.me";
 
 // Base URL for local development - replace 192.168.50.180 with your computer's IP address
 // const char* BASE_URL = "http://192.168.50.180:5173";
-
-// Replace with your network credentials
-const char* ssid = "SSID";
-const char* password = "PASSWORD";
 
 // Enter your location
 String location = "Adelaide";
