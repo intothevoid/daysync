@@ -765,29 +765,62 @@ void create_small_finance_display(lv_obj_t * parent, String data, String display
   DeserializationError error = deserializeJson(doc, data);
   
   if (!error) {
-    // Format the price range string
-    String low = String(doc["regularMarketDayLow"].as<float>(), 2);
-    String high = String(doc["regularMarketDayHigh"].as<float>(), 2);
-    String price_range = "$" + low + " - $" + high;
+    float prev_close = doc["previousClose"].as<float>();
+    float current_price = doc["regularMarketPrice"].as<float>();
+    float current_low = doc["regularMarketDayLow"].as<float>();
+    float current_high = doc["regularMarketDayHigh"].as<float>();
+    
+    // Calculate percentage change using current price instead of high
+    float percent_change = 0.0;
+    if (prev_close > 0) {  // Prevent division by zero
+      percent_change = ((current_price - prev_close) / prev_close) * 100.0;
+    }
+    
+    // Format the strings
+    String price_range = "$" + String(current_low, 2) + " - $" + String(current_high, 2);
+    String change_str;
+    lv_color_t change_color;
+    
+    if (abs(percent_change) < 0.1) { // Consider changes less than 0.1% as 0%
+      change_str = "0.0%";
+      change_color = lv_color_black();
+    } else {
+      change_str = (percent_change > 0 ? "/\\ +" : "\\/ ") + String(abs(percent_change), 1) + "%";
+      change_color = percent_change > 0 ? lv_color_hex(0x00AA00) : lv_color_hex(0xE31837);
+    }
+    
+    // Create a container for this row
+    lv_obj_t * row_cont = lv_obj_create(parent);
+    lv_obj_set_size(row_cont, 280, 20);
+    lv_obj_set_style_bg_color(row_cont, lv_color_white(), 0);
+    lv_obj_set_style_border_width(row_cont, 0, 0);
+    lv_obj_set_style_pad_all(row_cont, 0, 0);
+    lv_obj_align(row_cont, LV_ALIGN_TOP_MID, 0, y_offset);
     
     // Symbol
-    lv_obj_t * symbol_label = lv_label_create(parent);
+    lv_obj_t * symbol_label = lv_label_create(row_cont);
     lv_label_set_text(symbol_label, display_symbol.c_str());
     lv_obj_set_style_text_font(symbol_label, &lv_font_montserrat_14, 0);
-    lv_obj_set_style_text_color(symbol_label, lv_color_hex(0xE31837), 0); // Same red as BTC
-    lv_obj_align(symbol_label, LV_ALIGN_TOP_MID, 50, y_offset);
+    lv_obj_set_style_text_color(symbol_label, lv_color_hex(0xE31837), 0);
+    lv_obj_align(symbol_label, LV_ALIGN_LEFT_MID, 0, 0);
     
     // Price range
-    lv_obj_t * price_label = lv_label_create(parent);
+    lv_obj_t * price_label = lv_label_create(row_cont);
     lv_label_set_text(price_label, price_range.c_str());
     lv_obj_set_style_text_font(price_label, &lv_font_montserrat_14, 0);
     lv_obj_set_style_text_color(price_label, lv_color_black(), 0);
-    lv_obj_align(price_label, LV_ALIGN_TOP_MID, 50, y_offset);
+    lv_obj_align(price_label, LV_ALIGN_LEFT_MID, 50, 0);
+    
+    // Change percentage
+    lv_obj_t * change_label = lv_label_create(row_cont);
+    lv_label_set_text(change_label, change_str.c_str());
+    lv_obj_set_style_text_font(change_label, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_color(change_label, change_color, 0);
+    lv_obj_align(change_label, LV_ALIGN_RIGHT_MID, 0, 0);
   }
 }
 
 void create_finance_screen() {
-  // Create a new screen for finance data
   lv_obj_t * finance_screen = lv_obj_create(NULL);
   lv_obj_set_style_bg_color(finance_screen, lv_color_white(), 0);
   
@@ -800,45 +833,78 @@ void create_finance_screen() {
   lv_obj_set_style_pad_all(cont, 0, 0);
   
   // Add title bar
-  create_title_bar(cont, "Finance");
+  create_title_bar(cont, "Stocks");
   
   // Parse S&P 500 data
   JsonDocument doc;
   DeserializationError error = deserializeJson(doc, sp500_data);
   
   if (!error) {
-    // S&P 500 Symbol in large text
-    lv_obj_t * symbol_label = lv_label_create(cont);
+    float prev_close = doc["previousClose"].as<float>();
+    float current_price = doc["regularMarketPrice"].as<float>();
+    float current_low = doc["regularMarketDayLow"].as<float>();
+    float current_high = doc["regularMarketDayHigh"].as<float>();
+    
+    // Calculate percentage change using current price
+    float percent_change = 0.0;
+    if (prev_close > 0) {  // Prevent division by zero
+      percent_change = ((current_price - prev_close) / prev_close) * 100.0;
+    }
+    
+    // Create main container for S&P 500
+    lv_obj_t * sp500_cont = lv_obj_create(cont);
+    lv_obj_set_size(sp500_cont, 280, 80);
+    lv_obj_set_style_bg_color(sp500_cont, lv_color_white(), 0);
+    lv_obj_set_style_border_width(sp500_cont, 0, 0);
+    lv_obj_set_style_pad_all(sp500_cont, 0, 0);
+    lv_obj_align(sp500_cont, LV_ALIGN_TOP_MID, 0, 50);
+    
+    // S&P 500 Symbol
+    lv_obj_t * symbol_label = lv_label_create(sp500_cont);
     lv_label_set_text(symbol_label, "S&P 500");
     lv_obj_set_style_text_font(symbol_label, &lv_font_montserrat_22, 0);
     lv_obj_set_style_text_color(symbol_label, lv_color_hex(0xE31837), 0);
-    lv_obj_align(symbol_label, LV_ALIGN_TOP_MID, 0, 60);
+    lv_obj_align(symbol_label, LV_ALIGN_TOP_MID, 0, 0);
     
-    // S&P 500 Price range in large text
-    lv_obj_t * price_label = lv_label_create(cont);
-    String low = String(doc["regularMarketDayLow"].as<float>(), 2);
-    String high = String(doc["regularMarketDayHigh"].as<float>(), 2);
-    String price_range = "$" + low + " - $" + high;
+    // Price range
+    String price_range = "$" + String(current_low, 2) + " - $" + String(current_high, 2);
+    lv_obj_t * price_label = lv_label_create(sp500_cont);
     lv_label_set_text(price_label, price_range.c_str());
-    lv_obj_set_style_text_font(price_label, &lv_font_montserrat_26, 0);
-    lv_obj_align(price_label, LV_ALIGN_TOP_MID, 0, 100);
+    lv_obj_set_style_text_font(price_label, &lv_font_montserrat_22, 0);
+    lv_obj_align(price_label, LV_ALIGN_TOP_MID, 0, 30);
+    
+    // Change percentage
+    String change_str;
+    lv_color_t change_color;
+    
+    if (abs(percent_change) < 0.1) { // Consider changes less than 0.1% as 0%
+      change_str = "0.0%";
+      change_color = lv_color_black();
+    } else {
+      change_str = (percent_change > 0 ? "/\\ +" : "\\/ ") + String(abs(percent_change), 1) + "%";
+      change_color = percent_change > 0 ? lv_color_hex(0x00AA00) : lv_color_hex(0xE31837);
+    }
+    
+    lv_obj_t * change_label = lv_label_create(sp500_cont);
+    lv_label_set_text(change_label, change_str.c_str());
+    lv_obj_set_style_text_font(change_label, &lv_font_montserrat_22, 0);
+    lv_obj_set_style_text_color(change_label, change_color, 0);
+    lv_obj_align(change_label, LV_ALIGN_TOP_MID, 0, 60);
     
     // Add other stocks vertically
-    int start_y = 140; // Start position for additional stocks
-    int spacing = 20; // Space between each stock row
+    int start_y = 140;
+    int spacing = 25;
     
     create_small_finance_display(cont, ndq_data, "NDQ", start_y);
     create_small_finance_display(cont, vas_data, "VAS", start_y + spacing);
     create_small_finance_display(cont, vgs_data, "VGS", start_y + (spacing * 2));
   } else {
-    // Error message if JSON parsing fails
     lv_obj_t * error_label = lv_label_create(cont);
     lv_label_set_text(error_label, "Error loading finance data");
     lv_obj_set_style_text_font(error_label, &lv_font_montserrat_20, 0);
     lv_obj_align(error_label, LV_ALIGN_CENTER, 0, 0);
   }
   
-  // Load the screen
   lv_screen_load(finance_screen);
 }
 
