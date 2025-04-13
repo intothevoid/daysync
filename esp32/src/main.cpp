@@ -8,10 +8,10 @@
 #include <ArduinoJson.h>
 
 // Base URL for all API calls
-// const char* BASE_URL = "https://daysync.karan.myds.me";
+const char* BASE_URL = "https://daysync.karan.myds.me";
 
 // Base URL for local development - replace 192.168.50.180 with your computer's IP address
-const char* BASE_URL = "http://192.168.50.180:5173";
+// const char* BASE_URL = "http://192.168.50.180:5173";
 
 // Replace with your network credentials
 const char* ssid = "SSID";
@@ -24,8 +24,12 @@ String timezone = "Adelaide/Australia";
 
 // HTTP data caching
 const unsigned long HTTP_CACHE_INTERVAL = 3600000; // 60 minutes in milliseconds
-unsigned long last_weather_timestamp = -HTTP_CACHE_INTERVAL; // Force first call
-unsigned long last_motogp_timestamp = -HTTP_CACHE_INTERVAL; // Force first call
+// const unsigned long HTTP_CACHE_INTERVAL = 60000; // 1 minute in milliseconds for testing
+unsigned long last_weather_timestamp = 0;
+unsigned long last_motogp_timestamp = 0;
+unsigned long last_f1_timestamp = 0;
+unsigned long last_crypto_timestamp = 0;
+unsigned long last_news_timestamp = 0;
 const unsigned long SCREEN_SWITCH_INTERVAL = 10000;   // 10 seconds in milliseconds
 unsigned long last_screen_switch = 0;
 int current_screen = 0; // 0 = weather, 1 = motogp, 2 = about
@@ -70,15 +74,12 @@ String eth_data;
 String doge_data;
 String xrp_data;
 String bnb_data;
-unsigned long last_crypto_timestamp = -HTTP_CACHE_INTERVAL;
 
 // News data variables
 String news_data;
-unsigned long last_news_timestamp = -HTTP_CACHE_INTERVAL; // Force first call
 
 // Store F1 data
 String f1_data;
-unsigned long last_f1_timestamp = -HTTP_CACHE_INTERVAL; // Force first call
 
 // Function declarations
 void get_weather_data();
@@ -118,65 +119,56 @@ static void timer_cb(lv_timer_t * timer){
   lv_label_set_text(text_label_time_location, String("Last Update: " + last_weather_update).c_str());
 }
 
+// Function to check if cache needs refresh
+bool should_refresh_cache(unsigned long last_timestamp) {
+  unsigned long current_time = millis();
+  // Handle millis() overflow and initial (0) case
+  return (last_timestamp == 0) || (current_time < last_timestamp) || (current_time - last_timestamp >= HTTP_CACHE_INTERVAL);
+}
+
 void get_weather_data() {
   if (WiFi.status() == WL_CONNECTED) {
-    // Only update if more than 60 minutes have passed
-    if (millis() - last_weather_timestamp > HTTP_CACHE_INTERVAL) {
-      HTTPClient http;
-      String url = String(BASE_URL) + "/api/weather?location=adelaide";
-      Serial.println("Fetching weather data from: " + url);
-      http.begin(url);
-      int httpCode = http.GET();
+    HTTPClient http;
+    String url = String(BASE_URL) + "/api/weather?location=adelaide";
+    Serial.println("Fetching weather data from: " + url);
+    http.begin(url);
+    int httpCode = http.GET();
 
-      if (httpCode > 0) {
-        if (httpCode == HTTP_CODE_OK) {
-          String payload = http.getString();
-          Serial.println("Weather API Response:");
-          Serial.println(payload);
+    if (httpCode > 0) {
+      if (httpCode == HTTP_CODE_OK) {
+        String payload = http.getString();
+        Serial.println("Weather API Response:");
+        Serial.println(payload);
+        
+        JsonDocument doc;
+        DeserializationError error = deserializeJson(doc, payload);
+        
+        if (!error) {
+          temperature = String(doc["temperature"].as<float>(), 1);
+          humidity = String(doc["humidity"].as<int>());
+          wind_speed = String(doc["wind_speed"].as<float>(), 1);
+          feels_like = String(doc["feels_like"].as<float>(), 1);
+          uv_index = String(doc["uv_index"].as<int>());
+          precipitation = String(doc["precipitation"].as<float>(), 1);
           
-          JsonDocument doc;
-          DeserializationError error = deserializeJson(doc, payload);
+          String local_time = doc["local_time"].as<String>();
+          current_date = local_time.substring(0, 10);
+          last_weather_update = local_time.substring(11, 16);
           
-          if (!error) {
-            // Extract data from the new API response format
-            temperature = String(doc["temperature"].as<float>(), 1);
-            humidity = String(doc["humidity"].as<int>());
-            wind_speed = String(doc["wind_speed"].as<float>(), 1);
-            feels_like = String(doc["feels_like"].as<float>(), 1);
-            uv_index = String(doc["uv_index"].as<int>());
-            precipitation = String(doc["precipitation"].as<float>(), 1);
-            
-            // Format the local time
-            String local_time = doc["local_time"].as<String>();
-            current_date = local_time.substring(0, 10); // Extract date
-            last_weather_update = local_time.substring(11, 16); // Extract time
-            
-            // Create weather description
-            weather_description = String("Wind: ") + wind_speed + "km/h | Feels: " + feels_like + "°C";
-            
-            last_weather_timestamp = millis();
-            
-            Serial.println("Parsed weather data:");
-            Serial.println("Temperature: " + temperature + "°C");
-            Serial.println("Humidity: " + humidity + "%");
-            Serial.println("Wind Speed: " + wind_speed + "km/h");
-            Serial.println("Feels Like: " + feels_like + "°C");
-            Serial.println("UV Index: " + uv_index);
-            Serial.println("Precipitation: " + precipitation + "mm");
-          } else {
-            Serial.print("deserializeJson() failed: ");
-            Serial.println(error.c_str());
-          }
+          weather_description = String("Wind: ") + wind_speed + "km/h | Feels: " + feels_like + "°C";
+          
+          last_weather_timestamp = millis();
         } else {
-          Serial.println("Weather API request failed with HTTP code: " + String(httpCode));
+          Serial.print("deserializeJson() failed: ");
+          Serial.println(error.c_str());
         }
       } else {
-        Serial.printf("Weather API GET request failed, error: %s\n", http.errorToString(httpCode).c_str());
+        Serial.println("Weather API request failed with HTTP code: " + String(httpCode));
       }
-      http.end();
     } else {
-      Serial.println("Using cached weather data");
+      Serial.printf("Weather API GET request failed, error: %s\n", http.errorToString(httpCode).c_str());
     }
+    http.end();
   } else {
     Serial.println("Not connected to Wi-Fi for weather data");
   }
@@ -307,30 +299,25 @@ void lv_create_main_gui(void) {
 
 void get_motogp_data() {
   if (WiFi.status() == WL_CONNECTED) {
-    // Only update if more than 60 minutes have passed
-    if (millis() - last_motogp_timestamp > HTTP_CACHE_INTERVAL) {
-      HTTPClient http;
-      String url = String(BASE_URL) + "/api/motogpnextrace?timezone=ACDT";
-      Serial.println("Fetching MotoGP data from: " + url);
-      http.begin(url);
-      int httpCode = http.GET();
+    HTTPClient http;
+    String url = String(BASE_URL) + "/api/motogpnextrace?timezone=ACDT";
+    Serial.println("Fetching MotoGP data from: " + url);
+    http.begin(url);
+    int httpCode = http.GET();
 
-      if (httpCode > 0) {
-        if (httpCode == HTTP_CODE_OK) {
-          motogp_data = http.getString();
-          Serial.println("MotoGP API Response:");
-          Serial.println(motogp_data);
-          last_motogp_timestamp = millis();
-        } else {
-          Serial.println("MotoGP API request failed with HTTP code: " + String(httpCode));
-        }
+    if (httpCode > 0) {
+      if (httpCode == HTTP_CODE_OK) {
+        motogp_data = http.getString();
+        Serial.println("MotoGP API Response:");
+        Serial.println(motogp_data);
+        last_motogp_timestamp = millis();
       } else {
-        Serial.printf("MotoGP API GET request failed, error: %s\n", http.errorToString(httpCode).c_str());
+        Serial.println("MotoGP API request failed with HTTP code: " + String(httpCode));
       }
-      http.end();
     } else {
-      Serial.println("Using cached MotoGP data");
+      Serial.printf("MotoGP API GET request failed, error: %s\n", http.errorToString(httpCode).c_str());
     }
+    http.end();
   } else {
     Serial.println("Not connected to Wi-Fi for MotoGP data");
   }
@@ -444,16 +431,12 @@ void get_crypto_data(String symbol, String &data) {
 }
 
 void get_all_crypto_data() {
-  if (millis() - last_crypto_timestamp > HTTP_CACHE_INTERVAL) {
-    get_crypto_data("BTCUSD", btc_data);
-    get_crypto_data("ETHUSD", eth_data);
-    get_crypto_data("DOGEUSD", doge_data);
-    get_crypto_data("XRPUSD", xrp_data);
-    get_crypto_data("BNBUSD", bnb_data);
-    last_crypto_timestamp = millis();
-  } else {
-    Serial.println("Using cached crypto data");
-  }
+  get_crypto_data("BTCUSD", btc_data);
+  get_crypto_data("ETHUSD", eth_data);
+  get_crypto_data("DOGEUSD", doge_data);
+  get_crypto_data("XRPUSD", xrp_data);
+  get_crypto_data("BNBUSD", bnb_data);
+  last_crypto_timestamp = millis();
 }
 
 void create_small_crypto_display(lv_obj_t * parent, String data, String expected_symbol, int y_offset) {
@@ -461,9 +444,6 @@ void create_small_crypto_display(lv_obj_t * parent, String data, String expected
   DeserializationError error = deserializeJson(doc, data);
   
   if (!error) {
-    // Debug logging
-    Serial.println("Creating display for " + expected_symbol + " with data: " + data);
-    
     // Use the expected symbol instead of parsing from response
     String symbol = expected_symbol;
     String price_str = "$" + String(doc["price"].as<const char*>());
@@ -475,16 +455,12 @@ void create_small_crypto_display(lv_obj_t * parent, String data, String expected
     lv_obj_set_style_text_font(symbol_label, &lv_font_montserrat_16, 0);
     lv_obj_set_style_text_color(symbol_label, lv_color_black(), 0); // Change to black
     lv_obj_align(symbol_label, LV_ALIGN_TOP_MID, 0, y_offset); // Offset to left for alignment with price
-    
-    Serial.println("Created display for " + symbol + " with price " + price_str);
   } else {
     Serial.println("Failed to parse JSON for " + expected_symbol + ": " + error.c_str());
   }
 }
 
 void create_bitcoin_screen() {
-  Serial.println("Creating Bitcoin screen");
-  
   // Create a new screen for crypto data
   lv_obj_t * crypto_screen = lv_obj_create(NULL);
   lv_obj_set_style_bg_color(crypto_screen, lv_color_white(), 0);
@@ -505,8 +481,6 @@ void create_bitcoin_screen() {
   DeserializationError error = deserializeJson(doc, btc_data);
   
   if (!error) {
-    Serial.println("Successfully parsed BTC data: " + btc_data);
-    
     // BTC Symbol in large text
     lv_obj_t * symbol_label = lv_label_create(cont);
     lv_label_set_text(symbol_label, "BTC");
@@ -521,8 +495,6 @@ void create_bitcoin_screen() {
     lv_label_set_text(price_label, price_str.c_str());
     lv_obj_set_style_text_font(price_label, &lv_font_montserrat_26, 0);
     lv_obj_align(price_label, LV_ALIGN_TOP_MID, 0, 100);
-    
-    Serial.println("Created BTC display with price " + price_str);
     
     // Add other cryptos vertically
     int start_y = 140; // Start position for additional coins
@@ -543,35 +515,29 @@ void create_bitcoin_screen() {
   
   // Load the screen
   lv_screen_load(crypto_screen);
-  Serial.println("Bitcoin screen created and loaded");
 }
 
 void get_news_data() {
   if (WiFi.status() == WL_CONNECTED) {
-    // Only update if more than 60 minutes have passed
-    if (millis() - last_news_timestamp > HTTP_CACHE_INTERVAL) {
-      HTTPClient http;
-      String url = String(BASE_URL) + "/api/news?location=au&max=10";
-      Serial.println("Fetching News data from: " + url);
-      http.begin(url);
-      int httpCode = http.GET();
+    HTTPClient http;
+    String url = String(BASE_URL) + "/api/news?location=au&max=10";
+    Serial.println("Fetching News data from: " + url);
+    http.begin(url);
+    int httpCode = http.GET();
 
-      if (httpCode > 0) {
-        if (httpCode == HTTP_CODE_OK) {
-          news_data = http.getString();
-          Serial.println("News API Response:");
-          Serial.println(news_data);
-          last_news_timestamp = millis();
-        } else {
-          Serial.println("News API request failed with HTTP code: " + String(httpCode));
-        }
+    if (httpCode > 0) {
+      if (httpCode == HTTP_CODE_OK) {
+        news_data = http.getString();
+        Serial.println("News API Response:");
+        Serial.println(news_data);
+        last_news_timestamp = millis();
       } else {
-        Serial.printf("News API GET request failed, error: %s\n", http.errorToString(httpCode).c_str());
+        Serial.println("News API request failed with HTTP code: " + String(httpCode));
       }
-      http.end();
     } else {
-      Serial.println("Using cached News data");
+      Serial.printf("News API GET request failed, error: %s\n", http.errorToString(httpCode).c_str());
     }
+    http.end();
   } else {
     Serial.println("Not connected to Wi-Fi for News data");
   }
@@ -650,30 +616,25 @@ void create_news_screen(int page) {
 
 void get_f1_data() {
   if (WiFi.status() == WL_CONNECTED) {
-    // Only update if more than 60 minutes have passed
-    if (millis() - last_f1_timestamp > HTTP_CACHE_INTERVAL) {
-      HTTPClient http;
-      String url = String(BASE_URL) + "/api/formula1nextrace?timezone=ACDT";
-      Serial.println("Fetching Formula 1 data from: " + url);
-      http.begin(url);
-      int httpCode = http.GET();
+    HTTPClient http;
+    String url = String(BASE_URL) + "/api/formula1nextrace?timezone=ACDT";
+    Serial.println("Fetching Formula 1 data from: " + url);
+    http.begin(url);
+    int httpCode = http.GET();
 
-      if (httpCode > 0) {
-        if (httpCode == HTTP_CODE_OK) {
-          f1_data = http.getString();
-          Serial.println("Formula 1 API Response:");
-          Serial.println(f1_data);
-          last_f1_timestamp = millis();
-        } else {
-          Serial.println("Formula 1 API request failed with HTTP code: " + String(httpCode));
-        }
+    if (httpCode > 0) {
+      if (httpCode == HTTP_CODE_OK) {
+        f1_data = http.getString();
+        Serial.println("Formula 1 API Response:");
+        Serial.println(f1_data);
+        last_f1_timestamp = millis();
       } else {
-        Serial.printf("Formula 1 API GET request failed, error: %s\n", http.errorToString(httpCode).c_str());
+        Serial.println("Formula 1 API request failed with HTTP code: " + String(httpCode));
       }
-      http.end();
     } else {
-      Serial.println("Using cached Formula 1 data");
+      Serial.printf("Formula 1 API GET request failed, error: %s\n", http.errorToString(httpCode).c_str());
     }
+    http.end();
   } else {
     Serial.println("Not connected to Wi-Fi for Formula 1 data");
   }
@@ -693,7 +654,7 @@ void create_f1_screen() {
   lv_obj_set_style_pad_all(cont, 0, 0);
   
   // Add title bar
-  create_title_bar(cont, "Formula 1 (Upcoming)");
+  create_title_bar(cont, "Formula 1 - Upcoming");
   
   // Parse JSON data
   JsonDocument doc;
@@ -803,6 +764,28 @@ void switch_screen() {
   }
 }
 
+// Function to refresh all data if needed
+void check_and_refresh_data() {
+  if (WiFi.status() == WL_CONNECTED) {
+    // Check and update each data source if needed
+    if (should_refresh_cache(last_weather_timestamp)) {
+      get_weather_data();
+    }
+    if (should_refresh_cache(last_motogp_timestamp)) {
+      get_motogp_data();
+    }
+    if (should_refresh_cache(last_f1_timestamp)) {
+      get_f1_data();
+    }
+    if (should_refresh_cache(last_crypto_timestamp)) {
+      get_all_crypto_data();
+    }
+    if (should_refresh_cache(last_news_timestamp)) {
+      get_news_data();
+    }
+  }
+}
+
 void setup() {
   String LVGL_Arduino = String("LVGL Library Version: ") + lv_version_major() + "." + lv_version_minor() + "." + lv_version_patch();
   Serial.begin(115200);
@@ -901,6 +884,9 @@ void setup() {
 void loop() {
   lv_task_handler();  // let the GUI do its work
   lv_tick_inc(5);     // tell LVGL how much time has passed
+  
+  // Check if data needs to be refreshed
+  check_and_refresh_data();
   
   // Check if it's time to switch screens
   switch_screen();
