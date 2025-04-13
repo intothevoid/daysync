@@ -81,6 +81,13 @@ String news_data;
 // Store F1 data
 String f1_data;
 
+// Store finance data
+String sp500_data;
+String ndq_data;
+String vas_data;
+String vgs_data;
+unsigned long last_finance_timestamp = 0;
+
 // Function declarations
 void get_weather_data();
 void get_weather_description(int code);
@@ -89,6 +96,8 @@ void get_motogp_data();
 void create_motogp_screen();
 void get_f1_data();
 void create_f1_screen();
+void get_finance_data();
+void create_finance_screen();
 void switch_screen();
 void get_all_crypto_data();
 void create_bitcoin_screen();
@@ -724,12 +733,119 @@ void create_f1_screen() {
   lv_screen_load(f1_screen);
 }
 
+void get_finance_data(String symbol, String &data) {
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    String url = String(BASE_URL) + "/api/finance?symbol=" + symbol;
+    Serial.println("Fetching finance data from: " + url);
+    http.begin(url);
+    int httpCode = http.GET();
+
+    if (httpCode > 0) {
+      if (httpCode == HTTP_CODE_OK) {
+        data = http.getString();
+        Serial.println(symbol + " Finance API Response:");
+        Serial.println(data);
+      }
+    }
+    http.end();
+  }
+}
+
+void get_all_finance_data() {
+  get_finance_data("^GSPC", sp500_data);
+  get_finance_data("NDQ.AX", ndq_data);
+  get_finance_data("VAS.AX", vas_data);
+  get_finance_data("VGS.AX", vgs_data);
+  last_finance_timestamp = millis();
+}
+
+void create_small_finance_display(lv_obj_t * parent, String data, String display_symbol, int y_offset) {
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, data);
+  
+  if (!error) {
+    // Format the price range string
+    String low = String(doc["regularMarketDayLow"].as<float>(), 2);
+    String high = String(doc["regularMarketDayHigh"].as<float>(), 2);
+    String price_range = "$" + low + " - $" + high;
+    
+    // Symbol
+    lv_obj_t * symbol_label = lv_label_create(parent);
+    lv_label_set_text(symbol_label, display_symbol.c_str());
+    lv_obj_set_style_text_font(symbol_label, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_color(symbol_label, lv_color_hex(0xE31837), 0); // Same red as BTC
+    lv_obj_align(symbol_label, LV_ALIGN_TOP_MID, 50, y_offset);
+    
+    // Price range
+    lv_obj_t * price_label = lv_label_create(parent);
+    lv_label_set_text(price_label, price_range.c_str());
+    lv_obj_set_style_text_font(price_label, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_color(price_label, lv_color_black(), 0);
+    lv_obj_align(price_label, LV_ALIGN_TOP_MID, 50, y_offset);
+  }
+}
+
+void create_finance_screen() {
+  // Create a new screen for finance data
+  lv_obj_t * finance_screen = lv_obj_create(NULL);
+  lv_obj_set_style_bg_color(finance_screen, lv_color_white(), 0);
+  
+  // Create a container for better layout
+  lv_obj_t * cont = lv_obj_create(finance_screen);
+  lv_obj_set_size(cont, 320, 240);
+  lv_obj_set_pos(cont, 0, 0);
+  lv_obj_set_style_bg_color(cont, lv_color_white(), 0);
+  lv_obj_set_style_border_width(cont, 0, 0);
+  lv_obj_set_style_pad_all(cont, 0, 0);
+  
+  // Add title bar
+  create_title_bar(cont, "Finance");
+  
+  // Parse S&P 500 data
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, sp500_data);
+  
+  if (!error) {
+    // S&P 500 Symbol in large text
+    lv_obj_t * symbol_label = lv_label_create(cont);
+    lv_label_set_text(symbol_label, "S&P 500");
+    lv_obj_set_style_text_font(symbol_label, &lv_font_montserrat_22, 0);
+    lv_obj_set_style_text_color(symbol_label, lv_color_hex(0xE31837), 0);
+    lv_obj_align(symbol_label, LV_ALIGN_TOP_MID, 0, 60);
+    
+    // S&P 500 Price range in large text
+    lv_obj_t * price_label = lv_label_create(cont);
+    String low = String(doc["regularMarketDayLow"].as<float>(), 2);
+    String high = String(doc["regularMarketDayHigh"].as<float>(), 2);
+    String price_range = "$" + low + " - $" + high;
+    lv_label_set_text(price_label, price_range.c_str());
+    lv_obj_set_style_text_font(price_label, &lv_font_montserrat_26, 0);
+    lv_obj_align(price_label, LV_ALIGN_TOP_MID, 0, 100);
+    
+    // Add other stocks vertically
+    int start_y = 140; // Start position for additional stocks
+    int spacing = 20; // Space between each stock row
+    
+    create_small_finance_display(cont, ndq_data, "NDQ", start_y);
+    create_small_finance_display(cont, vas_data, "VAS", start_y + spacing);
+    create_small_finance_display(cont, vgs_data, "VGS", start_y + (spacing * 2));
+  } else {
+    // Error message if JSON parsing fails
+    lv_obj_t * error_label = lv_label_create(cont);
+    lv_label_set_text(error_label, "Error loading finance data");
+    lv_obj_set_style_text_font(error_label, &lv_font_montserrat_20, 0);
+    lv_obj_align(error_label, LV_ALIGN_CENTER, 0, 0);
+  }
+  
+  // Load the screen
+  lv_screen_load(finance_screen);
+}
+
 void switch_screen() {
   if (millis() - last_screen_switch > SCREEN_SWITCH_INTERVAL) {
-    // Get the current screen
     lv_obj_t * current = lv_screen_active();
     
-    // Create the new screen first
     switch (current_screen) {
       case 0:
         create_motogp_screen();
@@ -738,28 +854,30 @@ void switch_screen() {
         create_f1_screen();
         break;
       case 2:
-        create_bitcoin_screen();
+        create_finance_screen();
         break;
       case 3:
-        create_news_screen(1); // First news page
+        create_bitcoin_screen();
         break;
       case 4:
-        create_news_screen(2); // Second news page
+        create_news_screen(1);
         break;
       case 5:
-        create_about_screen();
+        create_news_screen(2);
         break;
       case 6:
+        create_about_screen();
+        break;
+      case 7:
         lv_create_main_gui();
         break;
     }
     
-    // Delete the old screen after the new one is created
     if (current) {
       lv_obj_del(current);
     }
     
-    current_screen = (current_screen + 1) % 7; // Now we have 7 screens
+    current_screen = (current_screen + 1) % 8; // Now we have 8 screens
     last_screen_switch = millis();
   }
 }
@@ -767,7 +885,6 @@ void switch_screen() {
 // Function to refresh all data if needed
 void check_and_refresh_data() {
   if (WiFi.status() == WL_CONNECTED) {
-    // Check and update each data source if needed
     if (should_refresh_cache(last_weather_timestamp)) {
       get_weather_data();
     }
@@ -776,6 +893,9 @@ void check_and_refresh_data() {
     }
     if (should_refresh_cache(last_f1_timestamp)) {
       get_f1_data();
+    }
+    if (should_refresh_cache(last_finance_timestamp)) {
+      get_all_finance_data();
     }
     if (should_refresh_cache(last_crypto_timestamp)) {
       get_all_crypto_data();
@@ -860,6 +980,7 @@ void setup() {
     get_weather_data();
     get_motogp_data();
     get_f1_data();
+    get_all_finance_data();
     get_all_crypto_data();
     get_news_data();
     
