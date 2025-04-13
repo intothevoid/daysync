@@ -1,0 +1,267 @@
+DaySync Future Improvements
+========================
+
+1. Configuration Management
+-------------------------
+Move all configuration variables to a separate header file (config.h) for better maintainability:
+```cpp
+// config.h
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// WiFi Configuration
+#define WIFI_SSID "SSID"
+#define WIFI_PASSWORD "PASSWORD"
+
+// Location Settings
+#define TIMEZONE "ACDT"
+#define LOCATION "adelaide"
+
+// Display Configuration
+#define SCREEN_WIDTH 240
+#define SCREEN_HEIGHT 320
+#define DRAW_BUF_SIZE (SCREEN_WIDTH * SCREEN_HEIGHT / 10 * (LV_COLOR_DEPTH / 8))
+
+// API Configuration
+#define BASE_URL "https://daysync.karan.myds.me"
+
+// Timing Configuration
+#define HTTP_CACHE_INTERVAL 3600000  // 60 minutes in milliseconds
+#define SCREEN_SWITCH_INTERVAL 10000 // 10 seconds in milliseconds
+
+// UI Constants
+#define COLOR_PRIMARY 0x2196F3    // Material Design Blue
+#define COLOR_ACCENT 0xE31837     // Red accent color
+#define COLOR_BACKGROUND 0xFFFFFF // White background
+
+#endif // CONFIG_H
+```
+
+2. Error Handling and Recovery
+----------------------------
+Implement robust WiFi connection management and error recovery:
+```cpp
+void ensure_wifi_connection() {
+    if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("WiFi connection lost. Reconnecting...");
+        WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+        
+        // Wait up to 10 seconds for reconnection
+        for (int i = 0; i < 20 && WiFi.status() != WL_CONNECTED; i++) {
+            delay(500);
+            Serial.print(".");
+        }
+        
+        if (WiFi.status() == WL_CONNECTED) {
+            Serial.println("\nReconnected successfully");
+            Serial.println("IP: " + WiFi.localIP().toString());
+        } else {
+            Serial.println("\nReconnection failed");
+        }
+    }
+}
+```
+
+3. Memory Management
+------------------
+Optimize memory usage with static allocation and better memory handling:
+```cpp
+// Use StaticJsonDocument instead of DynamicJsonDocument
+StaticJsonDocument<1024> doc; // Size based on typical response size
+
+// Consider using PROGMEM for constant strings
+const char WEATHER_ENDPOINT[] PROGMEM = "/api/weather";
+const char MOTOGP_ENDPOINT[] PROGMEM = "/api/motogpnextrace";
+const char F1_ENDPOINT[] PROGMEM = "/api/formula1nextrace";
+
+// Use String sparingly, prefer char arrays where possible
+char temperature[8];
+char humidity[4];
+```
+
+4. Screen Management
+------------------
+Implement a more organized screen management system:
+```cpp
+enum ScreenType {
+    WEATHER = 0,
+    MOTOGP,
+    FORMULA1,
+    CRYPTO,
+    NEWS_1,
+    NEWS_2,
+    ABOUT,
+    TOTAL_SCREENS
+};
+
+struct Screen {
+    const char* title;
+    void (*creator)();
+    unsigned long refresh_interval;
+};
+
+Screen screens[] = {
+    {"Weather", lv_create_main_gui, HTTP_CACHE_INTERVAL},
+    {"MotoGP", create_motogp_screen, HTTP_CACHE_INTERVAL},
+    {"Formula 1", create_f1_screen, HTTP_CACHE_INTERVAL},
+    {"Crypto", create_bitcoin_screen, HTTP_CACHE_INTERVAL},
+    {"News (1/2)", []() { create_news_screen(1); }, HTTP_CACHE_INTERVAL},
+    {"News (2/2)", []() { create_news_screen(2); }, HTTP_CACHE_INTERVAL},
+    {"About", create_about_screen, UINT32_MAX}
+};
+```
+
+5. API Response Handling
+----------------------
+Create a robust API handling system:
+```cpp
+struct APIResponse {
+    bool success;
+    String data;
+    int error_code;
+    String error_message;
+};
+
+APIResponse make_http_request(const char* endpoint, const char* params = nullptr) {
+    APIResponse response = {false, "", 0, ""};
+    
+    if (!WiFi.status() == WL_CONNECTED) {
+        response.error_message = "WiFi not connected";
+        return response;
+    }
+    
+    HTTPClient http;
+    String url = String(BASE_URL) + endpoint;
+    if (params) {
+        url += "?" + String(params);
+    }
+    
+    http.begin(url);
+    int httpCode = http.GET();
+    
+    if (httpCode == HTTP_CODE_OK) {
+        response.success = true;
+        response.data = http.getString();
+    } else {
+        response.error_code = httpCode;
+        response.error_message = http.errorToString(httpCode);
+    }
+    
+    http.end();
+    return response;
+}
+```
+
+6. Task Management
+----------------
+Implement a task scheduler for better timing control:
+```cpp
+struct Task {
+    const char* name;
+    unsigned long last_run;
+    unsigned long interval;
+    void (*function)();
+    bool enabled;
+};
+
+class TaskScheduler {
+private:
+    static const int MAX_TASKS = 10;
+    Task tasks[MAX_TASKS];
+    int task_count = 0;
+
+public:
+    void addTask(const char* name, unsigned long interval, void (*function)(), bool enabled = true) {
+        if (task_count < MAX_TASKS) {
+            tasks[task_count] = {
+                name,
+                millis(),
+                interval,
+                function,
+                enabled
+            };
+            task_count++;
+        }
+    }
+
+    void run() {
+        unsigned long now = millis();
+        for (int i = 0; i < task_count; i++) {
+            if (tasks[i].enabled && (now - tasks[i].last_run >= tasks[i].interval)) {
+                tasks[i].function();
+                tasks[i].last_run = now;
+            }
+        }
+    }
+};
+```
+
+7. Resource Management
+--------------------
+Create a centralized resource management system:
+```cpp
+// styles.h
+struct UIStyle {
+    lv_style_t title_bar;
+    lv_style_t content;
+    lv_style_t accent_text;
+    lv_style_t normal_text;
+};
+
+// Initialize styles once and reuse
+void init_styles(UIStyle* style) {
+    lv_style_init(&style->title_bar);
+    lv_style_set_bg_color(&style->title_bar, lv_color_hex(COLOR_PRIMARY));
+    lv_style_set_text_color(&style->title_bar, lv_color_white());
+    // ... more style initialization
+}
+
+// Font definitions
+#define FONT_LARGE &lv_font_montserrat_26
+#define FONT_MEDIUM &lv_font_montserrat_16
+#define FONT_SMALL &lv_font_montserrat_14
+```
+
+8. Error Recovery
+---------------
+Implement system-level error recovery:
+```cpp
+#include <esp_task_wdt.h>
+#include <esp_system.h>
+
+void init_watchdog() {
+    esp_task_wdt_init(30, true); // 30 second timeout
+    esp_task_wdt_add(NULL);
+}
+
+void setup_error_handling() {
+    // Initialize watchdog
+    init_watchdog();
+    
+    // Setup crash handler
+    esp_register_shutdown_handler([]() {
+        // Save any critical data
+        // Log error state
+        // Prepare for restart
+    });
+}
+
+void loop() {
+    esp_task_wdt_reset(); // Reset watchdog timer
+    // ... rest of loop code
+}
+```
+
+Implementation Priority
+---------------------
+Suggested order of implementation:
+1. Configuration Management - Immediate improvement in maintainability
+2. Error Handling and Recovery - Critical for stability
+3. Task Management - Better control over timing and tasks
+4. Screen Management - Improved organization and maintainability
+5. API Response Handling - More robust data fetching
+6. Memory Management - Performance optimization
+7. Resource Management - UI consistency and optimization
+8. Error Recovery - System stability
+
+Each improvement can be implemented independently, allowing for gradual enhancement of the system while maintaining functionality. 
