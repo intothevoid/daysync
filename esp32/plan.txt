@@ -1,0 +1,47 @@
+# Code Improvement Plan for src/main.cpp
+
+Here's a breakdown of potential improvements:
+
+1.  **Code Structure & Modularity:**
+    *   **Problem:** The `main.cpp` file is very long (over 800 lines) and handles everything: WiFi connection, API calls, JSON parsing, LVGL UI creation, and screen switching logic. This makes it hard to navigate and maintain.
+    *   **Suggestion:** Break down the code into logical modules (separate `.h` and `.cpp` files). For example:
+        *   `ApiService`: Handles all HTTP requests, caching logic (`should_refresh_cache`), and potentially initial JSON parsing.
+        *   `DataTypes`: Defines `struct`s or `class`es to hold the parsed data (e.g., `WeatherData`, `RaceData`, `CryptoData`, `FinanceData`, `NewsArticle`).
+        *   `UIManager`: Manages LVGL screen creation, updates, and switching. It would take the structured data from `ApiService` (or a data manager) to populate the UI elements.
+        *   `Config`: Could hold constants like `BASE_URL`, `location`, `timezone`, intervals, etc. (or these could go into `User_Setup.h`).
+
+2.  **Data Handling & Globals:**
+    *   **Problem:** Extensive use of global `String` variables (e.g., `temperature`, `humidity`, `motogp_data`, `f1_data`, etc.) to store fetched data. This makes data flow hard to track and increases the risk of unintended side effects. JSON parsing often happens directly within the UI creation functions.
+    *   **Suggestion:**
+        *   Use the `struct`s/`class`es defined in `DataTypes` to store parsed data logically.
+        *   The `ApiService` should fetch and parse the data, returning these structures.
+        *   Pass these data structures to the `UIManager` functions responsible for displaying them, reducing reliance on globals.
+
+3.  **API Request & Parsing Logic:**
+    *   **Problem:** Repetitive code for making HTTP GET requests in functions like `get_weather_data`, `get_motogp_data`, `get_crypto_data`, etc. Error handling is similar in each.
+    *   **Suggestion:** Create a generalized function within `ApiService` like `fetchJsonData(const String& endpoint, JsonDocument& doc)` that handles the HTTP request, checks the status code, performs basic error logging, and parses the JSON into the provided `JsonDocument`. Caching logic (`should_refresh_cache` and timestamp checks) can also be centralized here or in dedicated fetch functions within `ApiService`.
+
+4.  **LVGL UI Management:**
+    *   **Problem:** Screens are completely deleted (`lv_obj_del`) and recreated (`create_..._screen`) every time `switch_screen` is called. This is inefficient and might cause visual flickering. UI layout uses absolute positioning with hardcoded offsets, making it brittle to changes. Repetitive creation of containers and title bars.
+    *   **Suggestion:**
+        *   **Screen Persistence:** Create all screens once during `setup` and store their pointers (e.g., in an array or struct). `switch_screen` would then simply call `lv_screen_load()` on the next screen's pointer.
+        *   **Data Updates:** Update the *content* of the labels/widgets on the existing screens when new data arrives (e.g., using `lv_label_set_text`), rather than recreating the entire screen. The `timer_cb` for weather already does this - apply a similar pattern for other data, perhaps triggered after `check_and_refresh_data`.
+        *   **Layouts:** Utilize LVGL's layout features (like flexbox or grid layouts) for more robust and maintainable positioning instead of hardcoded coordinates.
+        *   **Reusable Components:** Create helper functions for common UI elements (like the title bar, already done with `create_title_bar`, but could be extended for standard screen layouts).
+
+5.  **Readability & Maintainability:**
+    *   **Problem:** Use of magic numbers (e.g., screen indices `0` to `7` in `switch_screen`, color codes like `0xE31837`, layout offsets). Hardcoded configuration strings (`location`, `timezone`, `BASE_URL`).
+    *   **Suggestion:**
+        *   Define `enum`s or `const int` variables for screen indices (e.g., `SCREEN_WEATHER`, `SCREEN_MOTOGP`, etc.).
+        *   Define constants for colors, fonts, and important layout values.
+        *   Move configuration values (`BASE_URL`, `location`, `timezone`, API keys if any) to a dedicated config file/struct or `User_Setup.h`.
+
+6.  **Error Handling:**
+    *   **Problem:** While basic HTTP and JSON errors are logged to Serial, the UI often just shows a generic error message or potentially crashes if parsing fails unexpectedly within a UI function. WiFi connection failure blocks indefinitely.
+    *   **Suggestion:** Improve UI feedback for errors. Display more specific messages on the screen when data fetching or parsing fails. Consider a non-blocking retry mechanism for WiFi or showing a persistent "Offline" status on the UI.
+
+**Proposed First Steps:**
+
+1.  **Introduce Data Structures:** Define `struct`s for each data type (Weather, MotoGP, F1, Crypto, Finance, News).
+2.  **Refactor API Calls:** Create a central place (e.g., an `ApiService` module or just helper functions initially) to handle HTTP requests and parse JSON into the new data structures.
+3.  **Modify UI Functions:** Update the `create_..._screen` functions to accept these data structures as parameters instead of relying on global strings and parsing JSON internally.
