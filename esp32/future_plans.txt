@@ -1,4 +1,4 @@
-DaySync Future Improvements
+Daysync Future Improvements
 ========================
 
 1. Configuration Management
