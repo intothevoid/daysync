@@ -1,6 +1,8 @@
 # DaySync
 
-A project that displays MotoGP race calendar, Formula 1 calendar, weather information, cryptocurrency prices, stock market data, and news on an ESP32 with a TFT display.
+![DaySync Display](static/daysync.gif)
+
+A project that displays weather information, news, cryptocurrency prices, MotoGP / Formula1 calendars and stock market data on an ESP32 with a TFT display. The ESP32-2432S028 is a 2.4" TFT display with a resolution of 240x320 pixels which is perfect for this project.
 
 ```mermaid
 graph LR
@@ -154,4 +156,4 @@ The project supports:
 - Test mode for development
 - ICS to JSON conversion for calendar data
 - CORS support for API endpoints
-- HTTP caching for improved performance 
+- HTTP caching for improved performance
