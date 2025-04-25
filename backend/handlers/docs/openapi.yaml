@@ -1,0 +1,320 @@
+openapi: 3.1.0
+info:
+  title: DaySync API
+  description: API for DaySync project - A smart display system for racing, weather, and financial data
+  version: 1.0.0
+  contact:
+    name: DaySync Team
+    url: https://github.com/intothevoid/daysync
+
+servers:
+  - url: http://localhost:5173/api
+    description: Local development server
+
+paths:
+  /motogp:
+    get:
+      summary: Get MotoGP season data
+      description: Returns the complete MotoGP season calendar
+      parameters:
+        - name: timezone
+          in: query
+          description: Timezone for the race times (e.g., UTC, Australia/Adelaide)
+          required: false
+          schema:
+            type: string
+            default: UTC
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Calendar'
+        '400':
+          description: Invalid timezone
+        '500':
+          description: Server error
+
+  /motogpnextrace:
+    get:
+      summary: Get next MotoGP race
+      description: Returns information about the next upcoming MotoGP race
+      parameters:
+        - name: timezone
+          in: query
+          description: Timezone for the race times
+          required: false
+          schema:
+            type: string
+            default: UTC
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Race'
+        '404':
+          description: No upcoming races found
+        '500':
+          description: Server error
+
+  /formula1:
+    get:
+      summary: Get Formula 1 season data
+      description: Returns the complete Formula 1 season calendar
+      parameters:
+        - name: timezone
+          in: query
+          description: Timezone for the race times
+          required: false
+          schema:
+            type: string
+            default: UTC
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Calendar'
+        '400':
+          description: Invalid timezone
+        '500':
+          description: Server error
+
+  /formula1nextrace:
+    get:
+      summary: Get next Formula 1 race
+      description: Returns information about the next upcoming Formula 1 race
+      parameters:
+        - name: timezone
+          in: query
+          description: Timezone for the race times
+          required: false
+          schema:
+            type: string
+            default: UTC
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Race'
+        '404':
+          description: No upcoming races found
+        '500':
+          description: Server error
+
+  /weather:
+    get:
+      summary: Get weather data
+      description: Returns weather information for a specified location
+      parameters:
+        - name: location
+          in: query
+          description: Location to get weather for
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Weather'
+        '400':
+          description: Missing location parameter
+        '500':
+          description: Server error
+
+  /crypto:
+    get:
+      summary: Get cryptocurrency price
+      description: Returns current price and market data for a cryptocurrency
+      parameters:
+        - name: symbol
+          in: query
+          description: Cryptocurrency symbol (e.g., BTC, ETH)
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Crypto'
+        '400':
+          description: Missing symbol parameter
+        '500':
+          description: Server error
+
+  /news:
+    get:
+      summary: Get news headlines
+      description: Returns top news headlines
+      parameters:
+        - name: category
+          in: query
+          description: News category (e.g., general, business, sports)
+          required: false
+          schema:
+            type: string
+            default: general
+        - name: lang
+          in: query
+          description: Language code (e.g., en, es)
+          required: false
+          schema:
+            type: string
+            default: en
+        - name: country
+          in: query
+          description: Country code (e.g., us, au)
+          required: false
+          schema:
+            type: string
+            default: au
+        - name: max
+          in: query
+          description: Maximum number of articles to return
+          required: false
+          schema:
+            type: string
+            default: "10"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/News'
+        '500':
+          description: Server error
+
+  /finance:
+    get:
+      summary: Get stock market data
+      description: Returns current price and market data for a stock
+      parameters:
+        - name: symbol
+          in: query
+          description: Stock symbol (e.g., AAPL, GOOGL)
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stock'
+        '400':
+          description: Missing symbol parameter
+        '500':
+          description: Server error
+
+components:
+  schemas:
+    Calendar:
+      type: object
+      properties:
+        races:
+          type: array
+          items:
+            $ref: '#/components/schemas/Race'
+
+    Race:
+      type: object
+      properties:
+        name:
+          type: string
+        circuit:
+          type: string
+        sessions:
+          type: object
+          properties:
+            q1:
+              type: string
+              format: date-time
+            q2:
+              type: string
+              format: date-time
+            sprint:
+              type: string
+              format: date-time
+            race:
+              type: string
+              format: date-time
+
+    Weather:
+      type: object
+      properties:
+        location:
+          type: string
+        temperature:
+          type: number
+        humidity:
+          type: number
+        conditions:
+          type: string
+        last_update:
+          type: string
+          format: date-time
+
+    Crypto:
+      type: object
+      properties:
+        symbol:
+          type: string
+        price:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    News:
+      type: object
+      properties:
+        articles:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              source:
+                type: string
+              url:
+                type: string
+              publishedAt:
+                type: string
+                format: date-time
+
+    Stock:
+      type: object
+      properties:
+        symbol:
+          type: string
+        longName:
+          type: string
+        regularMarketPrice:
+          type: number
+        regularMarketChange:
+          type: number
+        regularMarketChangePercent:
+          type: number
+        regularMarketDayHigh:
+          type: number
+        regularMarketDayLow:
+          type: number
+        fiftyTwoWeekHigh:
+          type: number
+        fiftyTwoWeekLow:
+          type: number 

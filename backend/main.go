@@ -53,6 +53,11 @@ func main() {
 	api.HandleFunc("/news", handlers.GetNews).Methods("GET")
 	api.HandleFunc("/finance", handlers.GetStockInfo).Methods("GET")
 
+	// Documentation routes
+	docs := r.PathPrefix("/docs").Subrouter()
+	docs.HandleFunc("/openapi.yaml", handlers.ServeOpenAPISpec).Methods("GET")
+	docs.PathPrefix("/").HandlerFunc(handlers.ServeSwaggerUI)
+
 	// Add CORS middleware
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -78,5 +83,6 @@ func main() {
 	}
 
 	log.Println("Starting server on :5173")
+	log.Println("API documentation available at http://localhost:5173/docs")
 	log.Fatal(srv.ListenAndServe())
 }

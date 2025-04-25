@@ -63,6 +63,21 @@ The API will be available at `http://localhost:5173/api` with the following endp
 - `GET /api/news` - Get top news headlines
 - `GET /api/finance` - Get stock market data
 
+## API Documentation
+
+The API documentation is available at `http://localhost:5173/docs/` and provides:
+
+- Interactive Swagger UI interface
+- Detailed API endpoint documentation
+- Request/response schemas
+- Try-it-out functionality for testing endpoints
+
+The documentation is automatically generated from the OpenAPI specification and includes:
+- All available endpoints
+- Required parameters
+- Response formats
+- Example requests and responses
+
 ## ESP32 Setup
 
 1. Install required libraries in Arduino IDE:
