@@ -3,7 +3,7 @@
 # DaySync Dashboard KUAL Extension
 # Usage: start.sh <update|show>
 
-EXTENSION_DIR="/mnt/us/extensions/daysync_dashboard"
+EXTENSION_DIR="/mnt/us/extensions/daysync"
 PYTHON_CMD="python3"
 
 # Check if Python is available
