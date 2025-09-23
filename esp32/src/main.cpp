@@ -9,7 +9,7 @@
 #include <ArduinoJson.h>
 
 // Base URL for all API calls
-const char* BASE_URL = "https://daysync.karan.myds.me";
+const char* BASE_URL = "https://localhost:5173";
 
 // Base URL for local development - replace 192.168.50.180 with your computer's IP address
 // const char* BASE_URL = "http://192.168.50.180:5173";

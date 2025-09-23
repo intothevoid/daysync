@@ -23,7 +23,7 @@ Move all configuration variables to a separate header file (config.h) for better
 #define DRAW_BUF_SIZE (SCREEN_WIDTH * SCREEN_HEIGHT / 10 * (LV_COLOR_DEPTH / 8))
 
 // API Configuration
-#define BASE_URL "https://daysync.karan.myds.me"
+#define BASE_URL "https://localhost:5173"
 
 // Timing Configuration
 #define HTTP_CACHE_INTERVAL 3600000  // 60 minutes in milliseconds
