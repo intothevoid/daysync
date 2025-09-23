@@ -115,3 +115,8 @@ if __name__ == "__main__":
     api_url = sys.argv[1] if len(sys.argv) > 1 else None
     data = collect_all_data(api_url)
     print(json.dumps(data, indent=2))
+
+    # output to file
+    with open("data.json", "w") as f:
+        json.dump(data, f, indent=2)
+
