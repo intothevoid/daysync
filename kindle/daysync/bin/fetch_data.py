@@ -26,7 +26,7 @@ class DaySyncAPI:
             print(f"Error fetching weather: {e}")
             return None
             
-    def get_next_motogp_race(self, timezone="Australia/Adelaide"):
+    def get_next_motogp_race(self, timezone="ACDT"):
         """Fetch next MotoGP race information"""
         try:
             response = self.session.get(f"{self.base_url}/motogpnextrace",
@@ -37,7 +37,7 @@ class DaySyncAPI:
             print(f"Error fetching MotoGP data: {e}")
             return None
             
-    def get_next_formula1_race(self, timezone="Australia/Adelaide"):
+    def get_next_formula1_race(self, timezone="ACDT"):
         """Fetch next Formula 1 race information"""
         try:
             response = self.session.get(f"{self.base_url}/formula1nextrace",
@@ -95,12 +95,14 @@ def collect_all_data(api_url=None):
         "motogp_next": api.get_next_motogp_race(),
         "formula1_next": api.get_next_formula1_race(),
         "crypto": {
-            "bitcoin": api.get_crypto_price("BTC"),
-            "ethereum": api.get_crypto_price("ETH")
+            "bitcoin": api.get_crypto_price("BTCUSD"),
+            "ethereum": api.get_crypto_price("ETHUSD"),
+            "solana": api.get_crypto_price("SOLUSD")
         },
         "stocks": {
-            "apple": api.get_stock_price("AAPL"),
-            "google": api.get_stock_price("GOOGL")
+            "nasdaq": api.get_stock_price("NDQ"),
+            "australiatop200": api.get_stock_price("VAS"),
+            "ustop200": api.get_stock_price("VGS")
         },
         "news": api.get_news()
     }
