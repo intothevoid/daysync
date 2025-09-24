@@ -1,0 +1,11 @@
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        .title { font: bold 48px sans-serif; fill: #333; }
+        .details { font: 32px sans-serif; fill: #555; }
+    </style>
+    <text x="50" y="80" class="title">{{.Name}}</text>
+    <text x="50" y="150" class="details">Q1: {{.Sessions.Q1}}</text>
+    <text x="50" y="200" class="details">Q2: {{.Sessions.Q2}}</text>
+    <text x="50" y="250" class="details">Sprint: {{.Sessions.Sprint}}</text>
+    <text x="50" y="300" class="details">Race: {{.Sessions.Race}}</text>
+</svg>

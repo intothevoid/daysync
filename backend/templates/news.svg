@@ -1,0 +1,10 @@
+<svg width="800" height="600" xmlns="http://www.w.org/2000/svg">
+    <style>
+        .title { font: bold 48px sans-serif; fill: #333; }
+        .details { font: 24px sans-serif; fill: #555; }
+    </style>
+    <text x="50" y="80" class="title">News</text>
+    {{range .Articles}}
+    <text x="50" y="{{add .Y 120}}" class="details">{{.Title}}</text>
+    {{end}}
+</svg>

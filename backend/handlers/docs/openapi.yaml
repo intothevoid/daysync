@@ -220,6 +220,73 @@ paths:
         '500':
           description: Server error
 
+  /kindle/motogp:
+    get:
+      summary: Get next MotoGP race as a PNG image
+      responses:
+        '200':
+          description: A PNG image of the next MotoGP race
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+  /kindle/formula1:
+    get:
+      summary: Get next Formula 1 race as a PNG image
+      responses:
+        '200':
+          description: A PNG image of the next Formula 1 race
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+  /kindle/weather:
+    get:
+      summary: Get weather as a PNG image
+      responses:
+        '200':
+          description: A PNG image of the weather
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+  /kindle/crypto:
+    get:
+      summary: Get crypto prices as a PNG image
+      responses:
+        '200':
+          description: A PNG image of crypto prices
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+  /kindle/finance:
+    get:
+      summary: Get finance data as a PNG image
+      responses:
+        '200':
+          description: A PNG image of finance data
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+  /kindle/news:
+    get:
+      summary: Get news as a PNG image
+      responses:
+        '200':
+          description: A PNG image of the news
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+
 components:
   schemas:
     Calendar:
@@ -317,4 +384,4 @@ components:
         fiftyTwoWeekHigh:
           type: number
         fiftyTwoWeekLow:
-          type: number 
+          type: number

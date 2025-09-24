@@ -53,6 +53,15 @@ func main() {
 	api.HandleFunc("/news", handlers.GetNews).Methods("GET")
 	api.HandleFunc("/finance", handlers.GetStockInfo).Methods("GET")
 
+	// Kindle routes
+	kindle := api.PathPrefix("/kindle").Subrouter()
+	kindle.HandleFunc("/motogp", handlers.GetKindleMotoGP).Methods("GET")
+	kindle.HandleFunc("/formula1", handlers.GetKindleFormula1).Methods("GET")
+	kindle.HandleFunc("/weather", handlers.GetKindleWeather).Methods("GET")
+	kindle.HandleFunc("/crypto", handlers.GetKindleCrypto).Methods("GET")
+	kindle.HandleFunc("/finance", handlers.GetKindleFinance).Methods("GET")
+	kindle.HandleFunc("/news", handlers.GetKindleNews).Methods("GET")
+
 	// Documentation routes
 	docs := r.PathPrefix("/docs").Subrouter()
 	docs.HandleFunc("/openapi.yaml", handlers.ServeOpenAPISpec).Methods("GET")

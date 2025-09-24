@@ -56,3 +56,18 @@ type NewsItem struct {
 type NewsResponse struct {
 	Items []NewsItem `json:"items"`
 }
+
+type Stock struct {
+	Symbol               string  `json:"symbol"`
+	LongName             string  `json:"longName"`
+	Timezone             string  `json:"timezone"`
+	ExchangeName         string  `json:"exchangeName"`
+	Gmtoffset            int     `json:"gmtoffset"`
+	FiftyTwoWeekHigh     float64 `json:"fiftyTwoWeekHigh"`
+	FiftyTwoWeekLow      float64 `json:"fiftyTwoWeekLow"`
+	RegularMarketDayHigh float64 `json:"regularMarketDayHigh"`
+	RegularMarketDayLow  float64 `json:"regularMarketDayLow"`
+	PreviousClose        float64 `json:"previousClose"`
+	Scale                int     `json:"scale"`
+	PriceHint            int     `json:"priceHint"`
+}

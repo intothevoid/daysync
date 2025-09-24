@@ -61,7 +61,20 @@ The API will be available at `http://localhost:5173/api` with the following endp
 - `GET /api/weather` - Get weather data for a location
 - `GET /api/crypto` - Get cryptocurrency price data
 - `GET /api/news` - Get top news headlines
-- `GET /api/finance` - Get stock market data
+- `GET /api/finance?symbol={symbol}`: Get stock market data for a given symbol
+
+### Kindle Endpoints
+
+- `/kindle/motogp`: Get next MotoGP race as a PNG image.
+- `/kindle/formula1`: Get next Formula 1 race as a PNG image.
+- `/kindle/weather`: Get weather as a PNG image.
+- `/kindle/crypto`: Get crypto prices as a PNG image.
+- `/kindle/finance`: Get finance data as a PNG image.
+- `/kindle/news`: Get news as a PNG image.
+
+## Kindle
+
+The Kindle component is a simple script that fetches the PNG images from the backend and displays them on the Kindle screen.
 
 ## API Documentation
 
