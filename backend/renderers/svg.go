@@ -47,8 +47,17 @@ func renderSVGTemplate(templateName string, data interface{}) (string, error) {
 		return "", err
 	}
 
+	funcMap := template.FuncMap{
+		"add": func(a, b int) int {
+			return a + b
+		},
+		"mul": func(a, b int) int {
+			return a * b
+		},
+	}
+
 	// Create a new template and parse the SVG content
-	tmpl, err := template.New(templateName).Parse(string(templateBytes))
+	tmpl, err := template.New(templateName).Funcs(funcMap).Parse(string(templateBytes))
 	if err != nil {
 		return "", err
 	}

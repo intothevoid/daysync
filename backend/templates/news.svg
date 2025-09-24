@@ -1,10 +1,7 @@
-<svg width="800" height="600" xmlns="http://www.w.org/2000/svg">
-    <style>
-        .title { font: bold 48px sans-serif; fill: #333; }
-        .details { font: 24px sans-serif; fill: #555; }
-    </style>
-    <text x="50" y="80" class="title">News</text>
-    {{range .Articles}}
-    <text x="50" y="{{add .Y 120}}" class="details">{{.Title}}</text>
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="800" height="600" fill="white"/>
+    <text x="50" y="60" font-family="DejaVu Sans" font-size="48" font-weight="bold" fill="#333">News</text>
+    {{range $index, $article := .Articles}}
+    <text x="50" y="{{add 120 (mul $index 40)}}" font-family="DejaVu Sans" font-size="24" fill="#555">{{$article.Title}}</text>
     {{end}}
 </svg>

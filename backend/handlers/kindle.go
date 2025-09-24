@@ -55,6 +55,7 @@ func GetKindleMotoGP(w http.ResponseWriter, r *http.Request) {
 	width, height := config.GetKindleImageConfig()
 	png, err := renderers.ConvertSVGToPNG(svg, width, height)
 	if err != nil {
+		log.Printf("Error converting SVG to PNG: %v", err)
 		http.Error(w, "Error converting to PNG", http.StatusInternalServerError)
 		return
 	}

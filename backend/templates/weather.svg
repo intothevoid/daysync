@@ -1,11 +1,7 @@
 <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Basement+Grotesque&display=swap');
-        .title { font: bold 48px 'Basement Grotesque', sans-serif; fill: #333; }
-        .details { font: 32px 'Basement Grotesque', sans-serif; fill: #555; }
-    </style>
-    <text x="50" y="80" class="title">{{.Location.Name}}</text>
-    <text x="50" y="150" class="details">{{.Current.Condition.Text}}</text>
-    <text x="50" y="200" class="details">{{.Current.TempC}}°C</text>
+    <rect x="0" y="0" width="800" height="600" fill="white"/>
+    <text x="50" y="80" font-family="DejaVu Sans" font-size="48" font-weight="bold" fill="#333">{{.Location.Name}}</text>
+    <text x="50" y="150" font-family="DejaVu Sans" font-size="32" fill="#555">{{.Current.Condition.Text}}</text>
+    <text x="50" y="200" font-family="DejaVu Sans" font-size="32" fill="#555">{{.Current.TempC}}°C</text>
     <image href="https://cdn.weatherapi.com/weather/64x64/{{.Current.Condition.Icon}}" x="50" y="220" height="64" width="64" />
 </svg>

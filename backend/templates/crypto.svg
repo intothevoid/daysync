@@ -1,10 +1,7 @@
 <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
-    <style>
-        .title { font: bold 48px sans-serif; fill: #333; }
-        .details { font: 32px sans-serif; fill: #555; }
-    </style>
-    <text x="50" y="80" class="title">Crypto</text>
-    {{range .}}
-    <text x="50" y="{{add .Y 150}}" class="details">{{.Symbol}}: {{.Price}}</text>
+    <rect x="0" y="0" width="800" height="600" fill="white"/>
+    <text x="50" y="80" font-family="DejaVu Sans" font-size="48" font-weight="bold" fill="#333">Crypto</text>
+    {{range $index, $crypto := .}}
+    <text x="50" y="{{add 150 (mul $index 50)}}" font-family="DejaVu Sans" font-size="32" fill="#555">{{$crypto.Symbol}}: ${{$crypto.Price}}</text>
     {{end}}
 </svg>
