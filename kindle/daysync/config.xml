@@ -8,6 +8,6 @@
         <description>Display data from a DaySync server on your Kindle.</description>
     </information>
     <menus>
-        <menu type="json">menu</menu>
+        <menu type="json" dynamic="true">menu.json</menu>
     </menus>
 </extension>
