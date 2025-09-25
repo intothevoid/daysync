@@ -80,13 +80,14 @@ The API will be available at `http://localhost:5173/api` with the following endp
 
 ## Kindle
 
-The Kindle extension is a KUAL extension that fetches PNG images from the backend API and displays them on the Kindle screen. The extension cycles through the available endpoints every 5 minutes, refreshing the display with a new image.
+The Kindle extension is a lightweight, shell-script based KUAL extension that fetches PNG images from the backend API and displays them on the Kindle screen. The extension cycles through the available endpoints every 5 minutes, refreshing the display with a new image. It uses `curl` to fetch the images and `eips` to display them, so it should be compatible with most jailbroken Kindles without needing to install Python.
 
 ### Kindle Setup
 
 1. Copy the `kindle/daysync` directory to the `/mnt/us/extensions/` directory on your Kindle.
-2. The extension can be started and stopped from the KUAL menu.
-3. A "Refresh" action is also available to manually trigger an update.
+2. Update the `BASE_URL` in `kindle/daysync/bin/config.sh` to the IP address of your DaySync backend server.
+3. The extension can be started and stopped from the KUAL menu.
+4. A "Refresh" action is also available to manually trigger an update.
 
 ## API Documentation
 

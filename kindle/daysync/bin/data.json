@@ -1,0 +1,194 @@
+{
+  "timestamp": "2025-09-23 21:04:56",
+  "weather": {
+    "location": "Adelaide",
+    "region": "South Australia",
+    "local_time": "2025-09-23 20:56",
+    "temperature": 14,
+    "wind_speed": 11.9,
+    "precipitation": 0.01,
+    "humidity": 77,
+    "feels_like": 13.2,
+    "uv_index": 0,
+    "updated_at": "2025-09-23T11:20:10.011054425Z"
+  },
+  "motogp_next": {
+    "round": 17,
+    "name": "Grand Prix of Japan",
+    "location": "Motegi",
+    "country": "Japan",
+    "circuit": "Twin Ring Motegi",
+    "date": "2025-09-25",
+    "sessions": {
+      "q1": "27th September 2025 at 11:20",
+      "q2": "27th September 2025 at 11:45",
+      "sprint": "27th September 2025 at 15:30",
+      "race": "28th September 2025 at 14:30"
+    }
+  },
+  "formula1_next": {
+    "round": 24,
+    "name": "F1: Grand Prix (Singapore Grand Prix)",
+    "location": "Singapore",
+    "country": "Singapore",
+    "circuit": "Marina Bay Street Circuit",
+    "date": "2025-10-05",
+    "sessions": {
+      "q1": "5th October 2025 at 22:30",
+      "q2": "5th October 2025 at 23:05",
+      "sprint": "6th October 2025 at 22:30",
+      "race": "6th October 2025 at 00:30"
+    }
+  },
+  "crypto": {
+    "bitcoin": {
+      "symbol": "BTCUSDT",
+      "price": "112682.20000000",
+      "timestamp": "23/09/25 11:28:28"
+    },
+    "ethereum": {
+      "symbol": "ETHUSDT",
+      "price": "4197.98000000",
+      "timestamp": "23/09/25 11:30:21"
+    },
+    "solana": {
+      "symbol": "SOLUSDT",
+      "price": "218.57000000",
+      "timestamp": "23/09/25 11:30:22"
+    }
+  },
+  "stocks": {
+    "nasdaq": {
+      "symbol": "NDQ",
+      "longName": "PowerShares QQQ ETF",
+      "timezone": "EDT",
+      "exchangeName": "NMS",
+      "gmtoffset": -14400,
+      "fiftyTwoWeekHigh": 9.18,
+      "fiftyTwoWeekLow": 8.78,
+      "regularMarketDayHigh": 0,
+      "regularMarketDayLow": 0,
+      "previousClose": 0,
+      "scale": 0,
+      "priceHint": 2
+    },
+    "australiatop200": {
+      "symbol": "VAS",
+      "longName": "",
+      "timezone": "EDT",
+      "exchangeName": "YHD",
+      "gmtoffset": -14400,
+      "fiftyTwoWeekHigh": 13.06,
+      "fiftyTwoWeekLow": 12.96,
+      "regularMarketDayHigh": 0,
+      "regularMarketDayLow": 0,
+      "previousClose": 0,
+      "scale": 0,
+      "priceHint": 2
+    },
+    "ustop200": {
+      "symbol": "VGS",
+      "longName": "",
+      "timezone": "EDT",
+      "exchangeName": "NMS",
+      "gmtoffset": -14400,
+      "fiftyTwoWeekHigh": 9500,
+      "fiftyTwoWeekLow": 9300,
+      "regularMarketDayHigh": 0,
+      "regularMarketDayLow": 0,
+      "previousClose": 0,
+      "scale": 0,
+      "priceHint": 2
+    }
+  },
+  "news": {
+    "articles": [
+      {
+        "content": "Prince Harry's recent meeting with his father, King Charles, was believed to have gone relatively smoothly. It was their first meeting in 19 months and lasted around 55 minutes.\nDuring their private tea, the King reportedly said his second son wouldn... [2660 chars]",
+        "description": "A royal expert claims Prince Harry will never return to official duties. Read more.",
+        "id": "95da35e82defef3ae576545d692419e7",
+        "image": "https://s.yimg.com/ny/api/res/1.2/aVgP3X0NHK1zEy6ddWlvDA--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02NDY7Y2Y9d2VicA--/https://s.yimg.com/os/creatr-uploaded-images/2025-09/d8d28240-97fd-11f0-b3f5-0e07c09ea2aa",
+        "lang": "en",
+        "publishedAt": "2025-09-22T23:02:49Z",
+        "source": {
+          "country": "au",
+          "id": "2b266123e1212c52b32fe74861908a2c",
+          "name": "Yahoo Lifestyle Australia",
+          "url": "https://au.lifestyle.yahoo.com"
+        },
+        "title": "Royal expert makes shock claim about Prince Harry's future in the family",
+        "url": "https://au.lifestyle.yahoo.com/royal-expert-makes-shock-claim-about-prince-harrys-future-in-the-family-230249669.html"
+      },
+      {
+        "content": "Bulldogs supremo Phil Gould has passionately defended the club from claims of \u201cself-sabotage\u201d after they crashed out of the finals at the hands of the Panthers on Sunday.\nWatch every game of the NRL Telstra Premiership Finals Series before the Grand ... [4612 chars]",
+        "description": "\u2018Childish\u2019: Gus slams \u2018self-sabotage\u2019 claim... yet makes startling Galvin reveal",
+        "id": "9697171ce72987b0a34cfe4b05b6d0ff",
+        "image": "https://content.api.news/v3/images/bin/ab89434e42fcf29ee3084584206c9c66",
+        "lang": "en",
+        "publishedAt": "2025-09-22T23:00:20Z",
+        "source": {
+          "country": "au",
+          "id": "4dff6eec49aed8ad858c020da892bcf1",
+          "name": "fox sports",
+          "url": "https://www.foxsports.com.au"
+        },
+        "title": "Phil Gould defends Bulldogs for signing Lachlan Galvin, dropping Toby Sexton, Reed Mahoney",
+        "url": "https://www.foxsports.com.au/nrl/nrl-premiership/nrl-2025-phil-gould-defends-bulldogs-for-signing-lachlan-galvin-dropping-toby-sexton-reed-mahoney/news-story/653b7a7420cc5e8e326eb3042538bedf"
+      },
+      {
+        "content": "Conditions inside the Alice Springs Correctional Centre have been described by a guard and outreach services as \"inhumane\" and dangerous as summer approaches.\nA correctional officer at the Alice Springs prison, who wishes to remain anonymous, said ov... [4627 chars]",
+        "description": "Calls are mounting for the Northern Territory government to improve facilities and conditions at the Alice Springs Correctional Centre as the region prepares for another hot summer.",
+        "id": "75190dcbf0f3a9a1c8b27cf374723cc0",
+        "image": "https://live-production.wcms.abc-cdn.net.au/6f3a0b4a5bb999fa0dca8ab7354330ff?impolicy=wcms_watermark_news&cropH=2813&cropW=5000&xPos=0&yPos=260&width=862&height=485&imformat=generic",
+        "lang": "en",
+        "publishedAt": "2025-09-22T22:57:31Z",
+        "source": {
+          "country": "au",
+          "id": "5cda8b5d5087e0271b0c94a70da9fe74",
+          "name": "Australian Broadcasting Corporation",
+          "url": "https://www.abc.net.au"
+        },
+        "title": "Alice Springs Correctional Centre conditions described as 'inhumane'",
+        "url": "https://www.abc.net.au/news/2025-09-23/alice-springs-prison-described-as-inhumane-ahead-of-summer/105789502"
+      },
+      {
+        "content": "Dear Members,\nAfter nearly three and a half years serving as your President, I have decided to step down from my role and hand over to Vice President Andrew Welsh.\nMy love for the Essendon Football Club is second only to the love I have for my family... [3639 chars]",
+        "description": "After three and a half years as President, David Barham has decided to step down.",
+        "id": "e3b2c841aa9d2b331bd67f2becce04d6",
+        "image": "https://resources.essendonfc.com.au/aflc-ess/photo/2025/09/22/35f25472-28bc-4fbb-9877-cd3c01d15086/Header_web.jpg",
+        "lang": "en",
+        "publishedAt": "2025-09-22T22:36:00Z",
+        "source": {
+          "country": "au",
+          "id": "1a772f28c1a08c763840e7e67801b536",
+          "name": "essendonfc.com.au",
+          "url": "https://www.essendonfc.com.au"
+        },
+        "title": "Letter from the President",
+        "url": "https://www.essendonfc.com.au/news/1901712/letter-from-the-president"
+      },
+      {
+        "content": "The leader of the state has waded into the debate over a Brisbane preschool charging parents to take their own children\u2019s art home, calling the move \u201cemotional blackmail\u201d.\nLoading\nThis masthead exclusively revealed on Monday that the insolvent Craigs... [8513 chars]",
+        "description": "For today\u2019s news updates in Brisbane and beyond as they happen, follow us here.",
+        "id": "9b9e02f91d44efc457d6febf559ea5e7",
+        "image": "https://static.ffx.io/images/$zoom_0.1356%2C$multiply_0.7554%2C$ratio_1.776846%2C$width_1059%2C$x_0%2C$y_0/t_crop_custom/q_86%2Cf_auto/t_brisbanetimes_rebranded_live_no_age_social_wm/b049ab3e08240be2a3277f7aeafaca8aa32c067f",
+        "lang": "en",
+        "publishedAt": "2025-09-22T22:31:07Z",
+        "source": {
+          "country": "au",
+          "id": "c603a60ac40ff998dd7aeead5e4953dc",
+          "name": "Brisbane Times",
+          "url": "https://www.brisbanetimes.com.au"
+        },
+        "title": "Brisbane news live: Premier labels kindy art charge \u2018un-Australian\u2019; Unusual detail in new CBD Wendy\u2019s; New flood map goes live",
+        "url": "https://www.brisbanetimes.com.au/national/queensland/brisbane-news-live-albanese-addresses-the-un-general-assembly-20250922-p5mx0y.html"
+      }
+    ],
+    "information": {
+      "realTimeArticles": {
+        "message": "Real-time news data is only available on paid plans. Free plan has a 12-hour delay. Upgrade your plan here to remove the delay: https://gnews.io/change-plan"
+      }
+    },
+    "totalArticles": 253728
+  }
+}

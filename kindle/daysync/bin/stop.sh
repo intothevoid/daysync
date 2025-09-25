@@ -4,9 +4,10 @@
 
 echo "Stopping DaySync dashboard..."
 
-# Find and kill the dashboard process
-PID=$(pgrep -f "python.*bin/dashboard.py start")
+# Find and kill the dashboard process and its children
+PID=$(pgrep -f "/bin/sh bin/start.sh")
 if [ -n "$PID" ]; then
+    pkill -P $PID
     kill $PID
     echo "DaySync dashboard stopped."
 else

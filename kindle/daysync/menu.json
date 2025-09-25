@@ -4,7 +4,7 @@
             "name": "Start DaySync",
             "priority": 1,
             "action": "bin/start.sh",
-            "params": "",
+            "params": "&",
             "refresh": false
         },
         {
@@ -17,8 +17,8 @@
         {
             "name": "Refresh",
             "priority": 3,
-            "action": "bin/dashboard.py",
-            "params": "refresh",
+            "action": "bin/refresh.sh",
+            "params": "",
             "refresh": true
         }
     ]

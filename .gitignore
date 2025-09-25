@@ -1,7 +1,5 @@
 backend/api.env
 esp32/include/wifi_config.h
-kindle/daysync/bin/data.json
-kindle/daysync/bin/dashboard.svg
-kindle/daysync/bin/dashboard.png
 **/.DS_Store
 kindle/daysync/cache/endpoint_index.txt
+kindle/daysync/cache/dashboard.png
