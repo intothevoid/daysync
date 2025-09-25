@@ -2,6 +2,6 @@
     <rect x="0" y="0" width="800" height="600" fill="white"/>
     <text x="50" y="80" font-family="DejaVu Sans" font-size="48" font-weight="bold" fill="#333">Crypto</text>
     {{range $index, $crypto := .}}
-    <text x="50" y="{{add 150 (mul $index 50)}}" font-family="DejaVu Sans" font-size="32" fill="#555">{{$crypto.Symbol}}: ${{$crypto.Price}}</text>
+    <text x="50" y="{{add 150 (mul $index 50)}}" font-family="DejaVu Sans" font-size="32" fill="#555">{{$crypto.Symbol}}: ${{$crypto.PriceUSD}}</text>
     {{end}}
 </svg>

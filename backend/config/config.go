@@ -35,6 +35,16 @@ func LoadConfig() error {
 		cfg.WeatherAPIKey = os.Getenv("WEATHER_API_KEY")
 	}
 
+	// If API Ninjas key is not in config, try environment variable
+	if cfg.APINinjasKey == "" {
+		cfg.APINinjasKey = os.Getenv("API_NINJAS_KEY")
+	}
+
+	// If GNews API key is not in config, try environment variable
+	if cfg.GNewsAPIKey == "" {
+		cfg.GNewsAPIKey = os.Getenv("GNEWS_API_KEY")
+	}
+
 	return nil
 }
 

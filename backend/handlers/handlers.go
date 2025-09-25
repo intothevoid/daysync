@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -356,78 +355,13 @@ func GetCryptoPrice(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("[API CALL] No cache found for crypto data, calling API Ninjas for %s", symbol)
 
-	var response interface{}
+	var response *models.CryptoPrice
 	var err error
 
 	if testMode {
 		response, err = services.GetTestCryptoPrice(symbol)
 	} else {
-		// Get API key from config or environment
-		apiKey := config.GetAPINinjasKey()
-		if apiKey == "" {
-			apiKey = os.Getenv("API_NINJAS_KEY")
-			if apiKey == "" {
-				log.Printf("API key not configured")
-				http.Error(w, "API key not configured", http.StatusInternalServerError)
-				return
-			}
-		}
-
-		// Create request to API Ninja
-		client := &http.Client{}
-		req, err := http.NewRequest("GET", "https://api.api-ninjas.com/v1/cryptoprice?symbol="+symbol, nil)
-		if err != nil {
-			log.Printf("Error creating request: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		req.Header.Set("X-Api-Key", apiKey)
-
-		// Make the request
-		resp, err := client.Do(req)
-		if err != nil {
-			log.Printf("Error making API request: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer resp.Body.Close()
-
-		// Check response status
-		if resp.StatusCode != http.StatusOK {
-			log.Printf("API request failed with status: %d", resp.StatusCode)
-			http.Error(w, fmt.Sprintf("API request failed with status: %d", resp.StatusCode), http.StatusInternalServerError)
-			return
-		}
-
-		// Parse the response
-		var result struct {
-			Symbol    string `json:"symbol"`
-			Price     string `json:"price"`
-			Timestamp int64  `json:"timestamp"`
-		}
-
-		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-			log.Printf("Error parsing API response: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		// Convert timestamp to time.Time
-		t := time.Unix(result.Timestamp, 0)
-		// Format the time as "dd/mm/yy hh:mm:ss"
-		formattedTime := t.Format("02/01/06 15:04:05")
-
-		// Create response with formatted time
-		response = struct {
-			Symbol    string `json:"symbol"`
-			Price     string `json:"price"`
-			Timestamp string `json:"timestamp"`
-		}{
-			Symbol:    result.Symbol,
-			Price:     result.Price,
-			Timestamp: formattedTime,
-		}
+		response, err = services.GetCryptoPrice(symbol)
 	}
 
 	if err != nil {
@@ -478,65 +412,13 @@ func GetNews(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("[API CALL] No cache found for news data, calling GNews API for category %s, lang %s, country %s", category, lang, country)
 
-	var newsResponse interface{}
+	var newsResponse *models.NewsResponse
 	var err error
 
 	if testMode {
 		newsResponse, err = services.GetTestNews(category, lang, country, max)
 	} else {
-		// Get API key from config or environment
-		apiKey := config.GetGNewsAPIKey()
-		if apiKey == "" {
-			apiKey = os.Getenv("GNEWS_API_KEY")
-			if apiKey == "" {
-				log.Printf("API key not configured")
-				http.Error(w, "API key not configured", http.StatusInternalServerError)
-				return
-			}
-		}
-
-		// Create request to GNews
-		client := &http.Client{}
-		url := fmt.Sprintf("https://gnews.io/api/v4/top-headlines?category=%s&lang=%s&country=%s&max=%s&apikey=%s",
-			category, lang, country, max, apiKey)
-
-		req, err := http.NewRequest("GET", url, nil)
-		if err != nil {
-			log.Printf("Error creating request: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		// Make the request
-		resp, err := client.Do(req)
-		if err != nil {
-			log.Printf("Error making API request: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer resp.Body.Close()
-
-		// Check response status
-		if resp.StatusCode != http.StatusOK {
-			log.Printf("API request failed with status: %d", resp.StatusCode)
-			http.Error(w, fmt.Sprintf("API request failed with status: %d", resp.StatusCode), http.StatusInternalServerError)
-			return
-		}
-
-		// Read the response body
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			log.Printf("Error reading response body: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		// Parse the response
-		if err := json.Unmarshal(body, &newsResponse); err != nil {
-			log.Printf("Error parsing news response: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		newsResponse, err = services.GetNews(category, lang, country, max)
 	}
 
 	if err != nil {
