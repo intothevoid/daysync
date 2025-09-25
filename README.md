@@ -12,6 +12,10 @@ graph LR
         E --> T
     end
 
+    subgraph Kindle["Kindle Display"]
+        K[Kindle Device]
+    end
+
     subgraph Backend["Go Backend"]
         B[API Server]
         W[Weather API]
@@ -23,6 +27,7 @@ graph LR
     end
 
     E <-->|HTTP Requests| B
+    K <-->|HTTP Requests| B
     B <-->|Data Fetch| W
     B <-->|Data Fetch| M
     B <-->|Data Fetch| F
@@ -35,6 +40,7 @@ graph LR
 
 - `backend/`: Go API backend
 - `esp32/`: ESP32 display code
+- `kindle/`: Kindle extension code
 
 ## Backend Setup
 
@@ -74,7 +80,13 @@ The API will be available at `http://localhost:5173/api` with the following endp
 
 ## Kindle
 
-The Kindle component is a simple script that fetches the PNG images from the backend and displays them on the Kindle screen.
+The Kindle extension is a KUAL extension that fetches PNG images from the backend API and displays them on the Kindle screen. The extension cycles through the available endpoints every 5 minutes, refreshing the display with a new image.
+
+### Kindle Setup
+
+1. Copy the `kindle/daysync` directory to the `/mnt/us/extensions/` directory on your Kindle.
+2. The extension can be started and stopped from the KUAL menu.
+3. A "Refresh" action is also available to manually trigger an update.
 
 ## API Documentation
 

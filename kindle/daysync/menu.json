@@ -1,18 +1,25 @@
 {
     "items": [
         {
-            "name": "Update Dashboard",
+            "name": "Start DaySync",
             "priority": 1,
             "action": "bin/start.sh",
-            "params": "update",
+            "params": "",
             "refresh": false
         },
         {
-            "name": "Show Dashboard", 
+            "name": "Stop DaySync", 
             "priority": 2,
-            "action": "bin/start.sh",
-            "params": "show",
+            "action": "bin/stop.sh",
+            "params": "",
             "refresh": false
+        },
+        {
+            "name": "Refresh",
+            "priority": 3,
+            "action": "bin/dashboard.py",
+            "params": "refresh",
+            "refresh": true
         }
     ]
 }

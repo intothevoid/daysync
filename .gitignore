@@ -3,4 +3,5 @@ esp32/include/wifi_config.h
 kindle/daysync/bin/data.json
 kindle/daysync/bin/dashboard.svg
 kindle/daysync/bin/dashboard.png
-kindle/daysync/.DS_Store
+**/.DS_Store
+kindle/daysync/cache/endpoint_index.txt

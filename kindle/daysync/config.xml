@@ -5,6 +5,7 @@
         <version>1.0</version>
         <author>bindok</author>
         <id>daysync</id>
+        <description>Display data from a DaySync server on your Kindle.</description>
     </information>
     <menus>
         <menu type="json">menu</menu>

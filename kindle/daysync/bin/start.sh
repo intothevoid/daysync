@@ -1,7 +1,6 @@
 #!/bin/sh
 
 # DaySync Dashboard KUAL Extension
-# Usage: start.sh <update|show>
 
 EXTENSION_DIR="/mnt/us/extensions/daysync"
 PYTHON_CMD="python3"
@@ -19,14 +18,10 @@ fi
 # Change to extension directory
 cd "$EXTENSION_DIR" || exit 1
 
-# Execute dashboard script
-if [ "$1" = "update" ]; then
-    echo "Updating DaySync dashboard..."
-    $PYTHON_CMD bin/dashboard.py update
-elif [ "$1" = "show" ]; then
-    echo "Showing cached dashboard..."
-    $PYTHON_CMD bin/dashboard.py show
-else
-    echo "Usage: $0 <update|show>"
-    exit 1
-fi
+# Make sure scripts are executable
+chmod +x bin/stop.sh
+chmod +x bin/dashboard.py
+
+# Execute dashboard script in the background
+echo "Starting DaySync dashboard..."
+$PYTHON_CMD bin/dashboard.py start &

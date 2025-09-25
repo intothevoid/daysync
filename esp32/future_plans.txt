@@ -252,6 +252,11 @@ void loop() {
 }
 ```
 
+9. Kindle Component
+-----------------
+- Add a configuration file for the Kindle extension to allow users to enable/disable certain endpoints or change the refresh interval.
+- Add a mechanism to display a default image or a message on the Kindle if the backend API is unreachable.
+
 Implementation Priority
 ---------------------
 Suggested order of implementation:
@@ -263,5 +268,6 @@ Suggested order of implementation:
 6. Memory Management - Performance optimization
 7. Resource Management - UI consistency and optimization
 8. Error Recovery - System stability
+9. Kindle Component - Enhance Kindle extension functionality
 
-Each improvement can be implemented independently, allowing for gradual enhancement of the system while maintaining functionality. 
+Each improvement can be implemented independently, allowing for gradual enhancement of the system while maintaining functionality.
