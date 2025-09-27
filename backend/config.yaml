@@ -2,5 +2,5 @@ weather_api_key: ""  # Leave empty to use WEATHER_API_KEY environment variable
 api_ninjas_key: "" # Leave empty to use API_NINJAS_KEY environment variable
 gnews_api_key: "" # Leave empty to use GNEWS_API_KEY environment variable
 cache_timeout_minutes: 60  # Cache responses for 60 minutes
-kindle_image_width: 800
-kindle_image_height: 600
+kindle_image_width: 600
+kindle_image_height: 800
